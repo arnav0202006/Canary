@@ -3,6 +3,7 @@ __pycache__/
 *.pyc
 *.pyo
 canary.db
+venv/
 
 # Dependencies
 node_modules/
