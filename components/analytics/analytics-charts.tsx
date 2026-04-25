@@ -10,6 +10,7 @@ import {
   BarChart,
   XAxis, 
   YAxis, 
+  CartesianGrid,
   ResponsiveContainer, 
   Tooltip,
   Legend
@@ -50,26 +51,26 @@ export function AnalyticsCharts({
           <CardDescription>Total requests over the last 24 hours</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-[250px]">
+          <div className="h-[250px] bg-muted rounded p-2">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={requests}>
                 <defs>
                   <linearGradient id="requestGradientAnalytics" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
-                    <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                    <stop offset="0%" stopColor="hsl(200 100% 70%)" stopOpacity={0.4} />
+                    <stop offset="100%" stopColor="hsl(200 100% 70%)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <XAxis 
                   dataKey="time" 
                   tickLine={false}
                   axisLine={false}
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
+                  tick={{ fill: 'hsl(0 0% 70%)', fontSize: 11 }}
                   interval="preserveStartEnd"
                 />
                 <YAxis 
                   tickLine={false}
                   axisLine={false}
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
+                  tick={{ fill: 'hsl(0 0% 70%)', fontSize: 11 }}
                   width={45}
                   tickFormatter={(value) => value >= 1000 ? `${value/1000}k` : value}
                 />
@@ -85,7 +86,7 @@ export function AnalyticsCharts({
                 <Area 
                   type="monotone"
                   dataKey="value" 
-                  stroke="hsl(var(--primary))" 
+                  stroke="hsl(200 100% 70%)" 
                   fill="url(#requestGradientAnalytics)"
                   strokeWidth={2}
                 />
@@ -102,20 +103,20 @@ export function AnalyticsCharts({
           <CardDescription>Errors per hour over the last 24 hours</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-[250px]">
+          <div className="h-[250px] bg-muted rounded p-2">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={errors}>
                 <XAxis 
                   dataKey="time" 
                   tickLine={false}
                   axisLine={false}
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
+                  tick={{ fill: 'hsl(0 0% 70%)', fontSize: 11 }}
                   interval="preserveStartEnd"
                 />
                 <YAxis 
                   tickLine={false}
                   axisLine={false}
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
+                  tick={{ fill: 'hsl(0 0% 70%)', fontSize: 11 }}
                   width={30}
                 />
                 <Tooltip 
@@ -130,7 +131,7 @@ export function AnalyticsCharts({
                 <Line 
                   type="monotone"
                   dataKey="value" 
-                  stroke="hsl(var(--destructive))" 
+                  stroke="hsl(0 100% 70%)" 
                   strokeWidth={2}
                   dot={false}
                 />
@@ -147,19 +148,20 @@ export function AnalyticsCharts({
           <CardDescription>Successful vs failed deployments</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-[250px]">
+          <div className="h-[250px] bg-muted rounded p-2">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={deploymentsData} barGap={4}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" />
                 <XAxis 
                   dataKey="date" 
-                  tickLine={false}
-                  axisLine={false}
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
+                  tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                  axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                  tick={{ fill: 'hsl(0 0% 70%)', fontSize: 11 }}
                 />
                 <YAxis 
-                  tickLine={false}
-                  axisLine={false}
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
+                  tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                  axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                  tick={{ fill: 'hsl(0 0% 70%)', fontSize: 11 }}
                   width={30}
                 />
                 <Tooltip 
@@ -176,13 +178,17 @@ export function AnalyticsCharts({
                 />
                 <Bar 
                   dataKey="success" 
-                  fill="hsl(var(--success))" 
+                  fill="hsl(0 0% 75%)" 
+                  stroke="hsl(0 0% 75%)"
+                  strokeWidth={1}
                   radius={[4, 4, 0, 0]}
                   name="Success"
                 />
                 <Bar 
                   dataKey="failed" 
-                  fill="hsl(var(--destructive))" 
+                  fill="hsl(0 0% 55%)" 
+                  stroke="hsl(0 0% 55%)"
+                  strokeWidth={1}
                   radius={[4, 4, 0, 0]}
                   name="Failed"
                 />
@@ -199,22 +205,23 @@ export function AnalyticsCharts({
           <CardDescription>Response time breakdown by bucket</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-[250px]">
+          <div className="h-[250px] bg-muted rounded p-2">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={latencyData} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" />
                 <XAxis 
                   type="number"
-                  tickLine={false}
-                  axisLine={false}
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
+                  tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                  axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                  tick={{ fill: 'hsl(0 0% 70%)', fontSize: 11 }}
                   tickFormatter={(value) => value >= 1000 ? `${value/1000}k` : value}
                 />
                 <YAxis 
                   type="category"
                   dataKey="range"
-                  tickLine={false}
-                  axisLine={false}
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
+                  tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                  axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                  tick={{ fill: 'hsl(0 0% 70%)', fontSize: 11 }}
                   width={70}
                 />
                 <Tooltip 
@@ -228,7 +235,9 @@ export function AnalyticsCharts({
                 />
                 <Bar 
                   dataKey="count" 
-                  fill="hsl(var(--info))" 
+                  fill="hsl(0 0% 65%)" 
+                  stroke="hsl(0 0% 65%)"
+                  strokeWidth={1}
                   radius={[0, 4, 4, 0]}
                 />
               </BarChart>
