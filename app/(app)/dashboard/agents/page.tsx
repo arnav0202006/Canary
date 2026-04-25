@@ -11,7 +11,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { agents, type AgentStatus } from "@/lib/data/agents"
+import { agents as mockAgents, type AgentStatus } from "@/lib/data/agents"
+import { fetchAgents } from "@/lib/api/client"
 
 function StatusBadge({ status }: { status: AgentStatus }) {
   const config = {
@@ -61,7 +62,9 @@ function formatTimeAgo(timestamp: string): string {
   return "Just now"
 }
 
-export default function AgentsPage() {
+export default async function AgentsPage() {
+  const liveAgents = await fetchAgents()
+  const agents = liveAgents && liveAgents.length > 0 ? liveAgents : mockAgents
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">

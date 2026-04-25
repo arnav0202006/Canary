@@ -15,12 +15,12 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { 
-  deployments, 
-  getActiveDeployments, 
-  type DeploymentStatus, 
-  type DeploymentTrigger 
+import {
+  deployments as mockDeployments,
+  type DeploymentStatus,
+  type DeploymentTrigger
 } from "@/lib/data/deployments"
+import { fetchDeployments } from "@/lib/api/client"
 import { DeploymentPipeline } from "@/components/deployments/deployment-pipeline"
 
 function StatusBadge({ status }: { status: DeploymentStatus }) {
@@ -73,8 +73,10 @@ function formatDate(timestamp: string): string {
   })
 }
 
-export default function DeploymentsPage() {
-  const activeDeployments = getActiveDeployments()
+export default async function DeploymentsPage() {
+  const liveDeployments = await fetchDeployments()
+  const deployments = liveDeployments && liveDeployments.length > 0 ? liveDeployments : mockDeployments
+  const activeDeployments = deployments.filter(d => d.status === "in-progress" || d.status === "queued")
   const recentDeployments = deployments.slice(0, 10)
 
   return (

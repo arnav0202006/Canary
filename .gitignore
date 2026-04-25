@@ -1,3 +1,9 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+canary.db
+
 # Dependencies
 node_modules/
 .pnp
@@ -9,8 +15,10 @@ out/
 build/
 dist/
 
-# Environment variables (Crucial for security!)
-.env*
+# Environment variables (real secrets only — .env.example is safe to commit)
+.env
+.env.local
+.env.production
 
 # Debug logs
 npm-debug.log*
