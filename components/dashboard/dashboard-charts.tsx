@@ -1,6 +1,6 @@
 "use client"
 
-import { Bar, BarChart, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts"
+import { Bar, BarChart, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend } from "recharts"
 
 interface DeploymentData {
   date: string
@@ -10,19 +10,20 @@ interface DeploymentData {
 
 export function DashboardCharts({ data }: { data: DeploymentData[] }) {
   return (
-    <div className="h-[200px]">
+    <div className="h-[200px] bg-muted rounded p-2">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} barGap={2}>
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" />
           <XAxis 
             dataKey="date" 
-            tickLine={false}
-            axisLine={false}
-            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+            tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+            axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+            tick={{ fill: 'hsl(0 0% 70%)', fontSize: 12 }}
           />
           <YAxis 
-            tickLine={false}
-            axisLine={false}
-            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+            tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+            axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+            tick={{ fill: 'hsl(0 0% 70%)', fontSize: 12 }}
             width={30}
           />
           <Tooltip 
@@ -34,15 +35,23 @@ export function DashboardCharts({ data }: { data: DeploymentData[] }) {
             }}
             labelStyle={{ color: 'hsl(var(--foreground))' }}
           />
+          <Legend 
+            wrapperStyle={{ fontSize: '12px' }}
+            iconSize={8}
+          />
           <Bar 
             dataKey="success" 
-            fill="hsl(var(--success))" 
+            fill="hsl(0 0% 75%)" 
+            stroke="hsl(0 0% 75%)"
+            strokeWidth={1}
             radius={[4, 4, 0, 0]}
             name="Successful"
           />
           <Bar 
             dataKey="failed" 
-            fill="hsl(var(--destructive))" 
+            fill="hsl(0 0% 55%)" 
+            stroke="hsl(0 0% 55%)"
+            strokeWidth={1}
             radius={[4, 4, 0, 0]}
             name="Failed"
           />

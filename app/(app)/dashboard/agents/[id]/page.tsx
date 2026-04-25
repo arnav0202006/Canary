@@ -1,11 +1,10 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { 
-  ArrowLeft, 
-  ExternalLink, 
+import {
+  ArrowLeft,
+  ExternalLink,
   GitBranch,
-  Rocket,
-  MoreHorizontal
+  MoreHorizontal,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -18,19 +17,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { 
-  getAgentById, 
-  getVersionsByAgentId, 
+import {
+  getAgentById,
+  getVersionsByAgentId,
   getLogsByAgentId,
   getTracesByAgentId,
   getErrorsByAgentId,
-  type AgentStatus 
+  type AgentStatus
 } from "@/lib/data/agents"
+import { fetchAgentById } from "@/lib/api/client"
 import { AgentVersions } from "@/components/agents/agent-versions"
 import { AgentLogs } from "@/components/agents/agent-logs"
 import { AgentTraces } from "@/components/agents/agent-traces"
 import { AgentErrors } from "@/components/agents/agent-errors"
 import { AgentMetrics } from "@/components/agents/agent-metrics"
+import { RollbackButton } from "@/components/agents/rollback-button"
+import { DeployVersionDialog } from "@/components/agents/deploy-version-dialog"
 
 function StatusBadge({ status }: { status: AgentStatus }) {
   const config = {
@@ -71,8 +73,9 @@ export default async function AgentDetailPage({
   params: Promise<{ id: string }> 
 }) {
   const { id } = await params
-  const agent = getAgentById(id)
-  
+  const liveAgent = await fetchAgentById(id)
+  const agent = liveAgent ?? getAgentById(id)
+
   if (!agent) {
     notFound()
   }
@@ -110,10 +113,8 @@ export default async function AgentDetailPage({
             <GitBranch className="h-4 w-4" />
             {agent.version}
           </Button>
-          <Button className="gap-2">
-            <Rocket className="h-4 w-4" />
-            Deploy
-          </Button>
+          <RollbackButton agentId={id} agentName={agent.name} />
+          <DeployVersionDialog agentId={id} agentName={agent.name} />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
@@ -126,7 +127,6 @@ export default async function AgentDetailPage({
                 View Repository
               </DropdownMenuItem>
               <DropdownMenuItem>Edit Configuration</DropdownMenuItem>
-              <DropdownMenuItem>Rollback</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-destructive">Delete Agent</DropdownMenuItem>
             </DropdownMenuContent>
