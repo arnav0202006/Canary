@@ -4,7 +4,7 @@ load_dotenv()
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database import engine, Base
-from .routers import agents, versions, deployments, audit
+from .routers import agents, versions, deployments, audit, api_usages, monitoring, execution
 
 Base.metadata.create_all(bind=engine)
 
@@ -22,6 +22,9 @@ app.include_router(agents.router)
 app.include_router(versions.router)
 app.include_router(deployments.router)
 app.include_router(audit.router)
+app.include_router(api_usages.router)
+app.include_router(monitoring.router)
+app.include_router(execution.router)
 
 
 @app.get("/health")

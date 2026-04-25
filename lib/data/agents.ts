@@ -21,6 +21,7 @@ export interface Agent {
 export interface AgentVersion {
   id: string
   agentId: string
+  parentVersionId?: string | null
   version: string
   hash: string
   message: string
@@ -31,6 +32,10 @@ export interface AgentVersion {
     additions: number
     deletions: number
   }
+  toolsConfig?: Record<string, unknown>
+  metadata?: Record<string, unknown>
+  state?: Record<string, unknown>
+  context?: Record<string, unknown>
 }
 
 export interface AgentLog {

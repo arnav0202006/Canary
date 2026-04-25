@@ -23,6 +23,9 @@ def create_version(agent_id: str, payload: VersionCreate, db: Session = Depends(
         prompt=payload.prompt,
         tools_config=json.dumps(payload.tools_config),
         metadata_=json.dumps(payload.metadata),
+        state=json.dumps(payload.state),
+        context=json.dumps(payload.context),
+        parent_version_id=payload.parent_version_id,
         created_by=payload.created_by,
     )
     db.add(version)

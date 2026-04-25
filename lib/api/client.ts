@@ -17,9 +17,13 @@ interface BackendAgent {
 interface BackendVersion {
   id: string
   agent_id: string
+  parent_version_id: string | null
   version_number: number
   prompt: string
   tools_config: string
+  metadata: string
+  state: string
+  context: string
   eval_score: number | null
   status: string
   created_at: string
@@ -94,6 +98,7 @@ function mapVersion(v: BackendVersion): AgentVersion {
   return {
     id: v.id,
     agentId: v.agent_id,
+    parentVersionId: v.parent_version_id,
     version: `v${v.version_number}`,
     hash: v.id.slice(0, 7),
     message: `Prompt v${v.version_number} — status: ${v.status}${v.eval_score != null ? `, eval: ${Math.round(v.eval_score * 100)}%` : ""}`,
@@ -101,6 +106,10 @@ function mapVersion(v: BackendVersion): AgentVersion {
     authorAvatar: v.created_by.slice(0, 2).toUpperCase(),
     createdAt: v.created_at,
     changes: { additions: 0, deletions: 0 },
+    toolsConfig: v.tools_config ? JSON.parse(v.tools_config) : undefined,
+    metadata: v.metadata ? JSON.parse(v.metadata) : undefined,
+    state: v.state ? JSON.parse(v.state) : undefined,
+    context: v.context ? JSON.parse(v.context) : undefined,
   }
 }
 
