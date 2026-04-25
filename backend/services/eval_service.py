@@ -42,7 +42,14 @@ Score 1 only if ALL criteria are clearly met. Score 0 if any criterion is violat
         max_tokens=256,
         messages=[{"role": "user", "content": judge_prompt}],
     )
-    result = json.loads(response.content[0].text.strip())
+    raw = response.content[0].text.strip()
+    # Strip markdown code fences if present
+    if raw.startswith("```"):
+        raw = raw.split("```")[1]
+        if raw.startswith("json"):
+            raw = raw[4:]
+        raw = raw.strip()
+    result = json.loads(raw)
     return float(result["score"]), result["reasoning"]
 
 

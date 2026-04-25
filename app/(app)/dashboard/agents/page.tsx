@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Plus, Search, Grid3X3, List, MoreHorizontal } from "lucide-react"
+import { Search, Grid3X3, List, MoreHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { agents as mockAgents, type AgentStatus } from "@/lib/data/agents"
 import { fetchAgents } from "@/lib/api/client"
+import { DeployDialog } from "@/components/agents/deploy-dialog"
 
 function StatusBadge({ status }: { status: AgentStatus }) {
   const config = {
@@ -72,10 +73,7 @@ export default async function AgentsPage() {
           <h1 className="text-2xl font-bold tracking-tight">Your Fleet</h1>
           <p className="text-muted-foreground">{agents.length} agents tracked</p>
         </div>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Deploy New
-        </Button>
+        <DeployDialog />
       </div>
 
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
