@@ -159,7 +159,7 @@ export default function DeploymentsPage() {
             {recentDeployments.map((deployment) => (
               <div 
                 key={deployment.id} 
-                className="flex items-center gap-4 rounded-lg border border-border/50 p-4 hover:bg-muted/20 transition-colors"
+                className="flex items-center gap-4 rounded-lg border border-white/10 p-4 bg-slate-900/50 hover:bg-slate-800/80 transition-colors"
               >
                 <div className={`w-1 h-12 rounded-full ${
                   deployment.status === "success" ? "bg-success" :

@@ -12,11 +12,11 @@ export default function MarketingLayout({
       <header className="sticky top-0 z-50 w-full border-b border-border/30 bg-background/90 backdrop-blur-md">
         <div className="container flex h-14 items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
-            <Bird className="h-6 w-6 text-primary transition-transform group-hover:rotate-12" />
+            <Bird className="h-8 w-8 text-primary transition-transform group-hover:rotate-12" />
             <span className="text-lg font-bold tracking-tight">canary</span>
           </Link>
           
-          <nav className="hidden md:flex items-center gap-6 text-sm">
+          <nav className="hidden md:flex items-center gap-6 text-lg">
             <Link href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
               Features
             </Link>
@@ -32,16 +32,16 @@ export default function MarketingLayout({
           </nav>
 
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="text-muted-foreground" asChild>
+            <Button variant="ghost" size="lg" className="text-muted-foreground" asChild>
               <Link href="https://github.com/canary-dev">
-                <Github className="h-4 w-4" />
+                <Github className="h-8 w-8" />
               </Link>
             </Button>
-            <div className="w-px h-4 bg-border/50 mx-1" />
-            <Button variant="ghost" size="sm" className="text-sm" asChild>
+            <div className="w-px h-5 bg-border/50 mx-1" />
+            <Button variant="ghost" size="sm" className="text-base" asChild>
               <Link href="/login">Log in</Link>
             </Button>
-            <Button size="sm" className="font-medium" asChild>
+            <Button size="sm" className="text-base" asChild>
               <Link href="/dashboard">Get Started</Link>
             </Button>
           </div>
