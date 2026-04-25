@@ -4,7 +4,8 @@ load_dotenv()
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database import engine, Base
-from .routers import agents, versions, deployments, audit, api_usages, monitoring, execution
+from .routers import agents, versions, deployments, audit, api_usages, monitoring, execution, auth
+from .routers.versions import versions_direct_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -20,11 +21,13 @@ app.add_middleware(
 
 app.include_router(agents.router)
 app.include_router(versions.router)
+app.include_router(versions_direct_router)
 app.include_router(deployments.router)
 app.include_router(audit.router)
 app.include_router(api_usages.router)
 app.include_router(monitoring.router)
 app.include_router(execution.router)
+app.include_router(auth.router)
 
 
 @app.get("/health")

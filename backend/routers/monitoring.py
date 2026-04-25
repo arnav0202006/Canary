@@ -34,9 +34,49 @@ def monitor_production_request(
         raise HTTPException(status_code=500, detail=f"Monitoring failed: {str(e)}")
 
 
-@router.get("/{agent_id}/monitoring/stats")
-def get_monitoring_stats(agent_id: str, hours: int = 24, db: Session = Depends(get_db)):
-    """Gets monitoring statistics for an agent over the specified time period"""
+@router.post("/{agent_id}/monitor/start")
+def start_monitoring(agent_id: str, db: Session = Depends(get_db)):
+    """Start monitoring for an agent"""
+    # For now, just return success - monitoring is always active
+    return {"status": "monitoring_started", "agent_id": agent_id}
+
+
+@router.get("/{agent_id}/monitor/status")
+def get_monitor_status(agent_id: str, db: Session = Depends(get_db)):
+    """Get monitoring status for an agent"""
+    return {"agent_id": agent_id, "status": "active", "monitoring_enabled": True}
+
+
+@router.get("/{agent_id}/monitor/violations")
+def get_monitor_violations(agent_id: str, hours: int = 24, db: Session = Depends(get_db)):
+    """Get recent violations for an agent"""
+    from ..models import AuditLog
+    from datetime import datetime, timedelta
+    
+    since_time = datetime.utcnow() - timedelta(hours=hours)
+    violations = db.query(AuditLog).filter(
+        AuditLog.agent_id == agent_id,
+        AuditLog.action == "critical_violation_detected",
+        AuditLog.created_at >= since_time
+    ).order_by(AuditLog.created_at.desc()).all()
+    
+    return {
+        "agent_id": agent_id,
+        "violations": [
+            {
+                "id": v.id,
+                "timestamp": v.created_at.isoformat(),
+                "details": v.details
+            } for v in violations
+        ],
+        "count": len(violations),
+        "time_range_hours": hours
+    }
+
+
+@router.get("/{agent_id}/monitor/metrics")
+def get_monitor_metrics(agent_id: str, hours: int = 24, db: Session = Depends(get_db)):
+    """Get monitoring metrics for an agent"""
     try:
         stats = production_monitor.get_monitoring_stats(db, agent_id, hours)
         return stats
