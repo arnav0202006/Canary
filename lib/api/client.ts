@@ -48,10 +48,12 @@ interface BackendAuditLog {
 
 // ── Status mappers ────────────────────────────────────────────────────────────
 
-function toAgentStatus(versions: BackendVersion[]): AgentStatus {
+function toAgentStatus(currentVersionId: string | null, versions: BackendVersion[]): AgentStatus {
+  const current = versions.find(v => v.id === currentVersionId)
+  if (current?.status === "production") return "online"
+  if (current?.status === "canary") return "deploying"
+  if (current?.status === "rolled_back") return "error"
   if (versions.some(v => v.status === "canary")) return "deploying"
-  if (versions.some(v => v.status === "production")) return "online"
-  if (versions.some(v => v.status === "rejected" || v.status === "rolled_back")) return "error"
   return "offline"
 }
 
@@ -76,7 +78,7 @@ function mapAgent(a: BackendAgent, versions: BackendVersion[]): Agent {
     id: a.id,
     name: a.name,
     description: a.description || "No description provided.",
-    status: toAgentStatus(versions),
+    status: toAgentStatus(a.current_version_id, versions),
     version: current ? `v${current.version_number}` : latest ? `v${latest.version_number}` : "undeployed",
     lastDeployment: a.created_at,
     successRate: current?.eval_score != null ? Math.round(current.eval_score * 100) : 0,
@@ -155,6 +157,15 @@ export async function fetchAgents(): Promise<Agent[] | null> {
     })
   )
   return agents
+}
+
+export async function fetchAgentById(agentId: string): Promise<Agent | null> {
+  const [raw, versions] = await Promise.all([
+    get<BackendAgent>(`/agents/${agentId}`),
+    get<BackendVersion[]>(`/agents/${agentId}/versions`),
+  ])
+  if (!raw) return null
+  return mapAgent(raw, versions ?? [])
 }
 
 export async function fetchVersionsByAgent(agentId: string): Promise<AgentVersion[] | null> {
