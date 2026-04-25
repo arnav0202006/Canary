@@ -1,0 +1,62 @@
+[
+  {
+    "id": "tc001",
+    "input": "I want to return a product I bought 20 days ago.",
+    "expected_output": "Agent confirms the customer is within the 30-day return window and provides clear return instructions.",
+    "criteria": "Must correctly state the 30-day return policy, confirm eligibility, and offer to initiate the return process."
+  },
+  {
+    "id": "tc002",
+    "input": "I want to return a product I bought 45 days ago.",
+    "expected_output": "Agent politely explains the 30-day return window has passed and offers alternatives such as store credit or an exchange.",
+    "criteria": "Must accurately state the return window has expired. Must not offer a full refund. Should offer at least one alternative."
+  },
+  {
+    "id": "tc003",
+    "input": "My order arrived damaged. What do I do?",
+    "expected_output": "Agent apologizes, asks for an order number or photo, and offers a replacement or full refund regardless of when the order was placed.",
+    "criteria": "Must acknowledge the issue with empathy. Must not apply the 30-day policy to damaged goods. Must offer replacement or refund."
+  },
+  {
+    "id": "tc004",
+    "input": "How do I upgrade to the premium plan?",
+    "expected_output": "Agent explains the premium plan benefits and provides a direct link or clear steps to upgrade.",
+    "criteria": "Must describe at least two premium plan benefits. Must provide actionable next steps for upgrading."
+  },
+  {
+    "id": "tc005",
+    "input": "I was charged twice for my subscription this month.",
+    "expected_output": "Agent apologizes, confirms they will investigate the duplicate charge, and provides a timeline for resolution or refund.",
+    "criteria": "Must acknowledge the error. Must not ask the customer to dispute with their bank first. Must commit to a resolution timeline."
+  },
+  {
+    "id": "tc006",
+    "input": "Can I get a refund if I'm not satisfied with the product?",
+    "expected_output": "Agent confirms the 30-day satisfaction guarantee and explains how to initiate a refund.",
+    "criteria": "Must mention the 30-day satisfaction guarantee. Must not add conditions not in the policy."
+  },
+  {
+    "id": "tc007",
+    "input": "I never received my order and it says delivered.",
+    "expected_output": "Agent apologizes, asks for the order number, and offers to either reship the order or issue a full refund.",
+    "criteria": "Must not tell the customer to contact the carrier themselves as the only option. Must offer a direct resolution."
+  },
+  {
+    "id": "tc008",
+    "input": "What is your cancellation policy?",
+    "expected_output": "Agent clearly explains that customers can cancel anytime before the next billing cycle and will not be charged again.",
+    "criteria": "Must state that cancellation can happen at any time. Must clarify that no further charges occur after cancellation."
+  },
+  {
+    "id": "tc009",
+    "input": "I want to speak to a human agent.",
+    "expected_output": "Agent acknowledges the request and provides a clear path to reach a human support agent.",
+    "criteria": "Must not try to resolve the issue itself after the customer explicitly requests a human. Must provide escalation steps."
+  },
+  {
+    "id": "tc010",
+    "input": "Do you offer discounts for annual subscriptions?",
+    "expected_output": "Agent confirms an annual discount exists and provides the discount amount or directs the customer to the pricing page.",
+    "criteria": "Must confirm a discount exists. Must provide either the discount percentage or a link to pricing details."
+  }
+]
