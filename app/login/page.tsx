@@ -51,10 +51,22 @@ export default function LoginPage() {
 
     if (error) {
       setError(error.message);
+      setIsLoading(false);
     } else {
-      setError('Check your email for the confirmation link.');
+      // Automatically log in after sign up if email confirmation is disabled in Supabase
+      const { error: loginError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (loginError) {
+        setError('Account created! Please sign in.');
+        setIsLoading(false);
+      } else {
+        router.push('/dashboard');
+        router.refresh();
+      }
     }
-    setIsLoading(false);
   };
 
   return (
@@ -77,7 +89,7 @@ export default function LoginPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="m@example.com"
+                placeholder="name@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -102,8 +114,7 @@ export default function LoginPage() {
               {isLoading ? 'Loading...' : 'Sign In'}
             </Button>
             <Button
-              variant="outline"
-              className="w-full"
+              className="w-full bg-white text-black hover:bg-white/90 border border-input shadow-sm"
               type="button"
               onClick={handleSignUp}
               disabled={isLoading}
