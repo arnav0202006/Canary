@@ -14,6 +14,7 @@ import {
   ChevronDown
 } from "lucide-react"
 
+import { useAuth } from "@/components/auth-provider"
 import {
   Sidebar,
   SidebarContent,
@@ -75,6 +76,7 @@ const secondaryNavItems = [
 
 export function AppSidebar() {
   const pathname = usePathname()
+  const { user, signOut } = useAuth()
 
   return (
     <Sidebar variant="sidebar" collapsible="icon">
@@ -159,13 +161,13 @@ export function AppSidebar() {
                 >
                   <Avatar className="h-8 w-8">
                     <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                      SC
+                      {user?.email?.substring(0, 2).toUpperCase() ?? 'SC'}
                     </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-medium">Sarah Chen</span>
+                    <span className="truncate font-medium">{user?.email?.split('@')[0] ?? 'Sarah Chen'}</span>
                     <span className="truncate text-xs text-muted-foreground">
-                      sarah@canary.dev
+                      {user?.email ?? 'sarah@canary.dev'}
                     </span>
                   </div>
                   <ChevronDown className="ml-auto size-4" />
@@ -184,11 +186,9 @@ export function AppSidebar() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sign out
-                  </Link>
+                <DropdownMenuItem onSelect={() => signOut()}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign out
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
