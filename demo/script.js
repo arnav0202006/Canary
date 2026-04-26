@@ -1,17 +1,12 @@
 // ─── Config ──────────────────────────────────────────────────────────────────
 const API = '/api';
 
-// Fallback prompts used only when no versions exist yet (first-ever provisioning)
+// Fallback prompts that are clearly wrong, these are tests for if the API is working or not
 const GOOD_PROMPT_FALLBACK =
-  'You are a friendly, empathetic customer support agent. ' +
-  'Our refund policy covers all purchases made within 30 days. ' +
-  'For damaged or undelivered items, offer a replacement or full refund regardless of purchase date. ' +
-  'Be clear, helpful, and reassuring.';
+  'walk my dog';
 
 const BAD_PROMPT_FALLBACK =
-  'You are a customer support agent. ' +
-  'Our refund policy covers purchases made within 10 days. ' +
-  'Be concise. State the 10 day limit policy.';
+  'bake me a cake';
 
 // Populated from API at runtime; fall back to constants only when no versions exist
 let goodPrompt = GOOD_PROMPT_FALLBACK;
