@@ -32,13 +32,8 @@ class VersionCreate(BaseModel):
 class VersionResponse(BaseModel):
     id: str
     agent_id: str
-    parent_version_id: Optional[str]
     version_number: int
     prompt: str
-    tools_config: str
-    metadata: str
-    state: str
-    context: str
     eval_score: Optional[float]
     status: str
     created_at: datetime

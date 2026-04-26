@@ -256,6 +256,62 @@ def root_callback(
         raise typer.Exit()
 
 
+@app.command("push")
+def push_cmd(
+    ctx: typer.Context,
+    path: str = typer.Argument(".", help="Path to canary.agent.json or directory containing it"),
+) -> None:
+    """Push canary.agent.json to the platform and run the deploy pipeline."""
+    _ensure_deps()
+    load_dotenv()
+    cfg = _read_config()
+    base_url = cfg.get("base_url", DEFAULT_BASE_URL)
+
+    spec_path = Path(path)
+    if spec_path.is_dir():
+        spec_path = spec_path / "canary.agent.json"
+    if not spec_path.exists():
+        raise typer.BadParameter(f"No canary.agent.json found at {spec_path}")
+
+    spec = json.loads(spec_path.read_text(encoding="utf-8"))
+
+    _echo(f"Pushing [bold]{spec.get('name', 'agent')}[/bold]...", style="cyan") if Console else _echo(f"Pushing {spec.get('name', 'agent')}...")
+
+    if httpx is None:
+        raise typer.BadParameter("httpx not installed. Run: pip install httpx")
+
+    try:
+        with httpx.Client(timeout=60.0) as client:
+            resp = client.post(f"{base_url}/agents/push", json=spec)
+            resp.raise_for_status()
+            result = resp.json()
+    except Exception as exc:
+        _echo(f"Push failed: {exc}", style="red")
+        raise typer.Exit(code=1)
+
+    status = result.get("status", "unknown")
+    version = result.get("version_number", "?")
+    score = result.get("eval_score")
+    message = result.get("message", "")
+    agent_id = result.get("agent_id", "")
+
+    score_str = f"{round(score * 100)}%" if score is not None else "n/a"
+
+    if status == "production":
+        _echo(f"✓ Version v{version} deployed to production  |  eval: {score_str}", style="green")
+    elif status == "rejected":
+        _echo(f"✗ Version v{version} rejected  |  eval: {score_str}", style="red")
+    elif status == "rolled_back":
+        _echo(f"⟲ Version v{version} rolled back  |  eval: {score_str}", style="yellow")
+    else:
+        _echo(f"? Status: {status}", style="yellow")
+
+    if message:
+        _echo(message)
+    if agent_id:
+        _echo(f"Agent ID: {agent_id}")
+
+
 @app.command("init")
 def init_cmd(database: str = typer.Option("sqlite:///canary.db", "--database")) -> None:
     cfg = _read_config()

@@ -1,0 +1,9 @@
+{
+  "name": "customer-support",
+  "description": "Handles customer inquiries for an e-commerce company",
+  "author": "arnav",
+  "eval_threshold": 65,
+  "traffic_percentage": 10,
+  "prompt": "You are a helpful bot.",
+  "tools": []
+}

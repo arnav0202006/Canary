@@ -1,5 +1,6 @@
 import json
 import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import List
 
@@ -16,7 +17,7 @@ def load_test_suite() -> list:
 
 def _get_agent_response(system_prompt: str, user_input: str) -> str:
     response = _client.messages.create(
-        model="claude-sonnet-4-6",
+        model="claude-haiku-4-5-20251001",
         max_tokens=512,
         system=system_prompt,
         messages=[{"role": "user", "content": user_input}],
@@ -38,12 +39,11 @@ Respond with valid JSON only, no extra text:
 Score 1 only if ALL criteria are clearly met. Score 0 if any criterion is violated or missing."""
 
     response = _client.messages.create(
-        model="claude-sonnet-4-6",
+        model="claude-haiku-4-5-20251001",
         max_tokens=256,
         messages=[{"role": "user", "content": judge_prompt}],
     )
     raw = response.content[0].text.strip()
-    # Strip markdown code fences if present
     if raw.startswith("```"):
         raw = raw.split("```")[1]
         if raw.startswith("json"):
@@ -53,21 +53,25 @@ Score 1 only if ALL criteria are clearly met. Score 0 if any criterion is violat
     return float(result["score"]), result["reasoning"]
 
 
+def _run_test_case(tc: dict, prompt: str) -> dict:
+    actual = _get_agent_response(prompt, tc["input"])
+    score, reasoning = _judge_response(tc["input"], tc["expected_output"], actual, tc["criteria"])
+    return {
+        "test_case_id": tc["id"],
+        "input": tc["input"],
+        "expected_output": tc["expected_output"],
+        "actual_output": actual,
+        "score": score,
+        "reasoning": reasoning,
+    }
+
+
 def run_eval(version_id: str, prompt: str, threshold: float = 0.90) -> dict:
     test_suite = load_test_suite()
-    results = []
 
-    for tc in test_suite:
-        actual = _get_agent_response(prompt, tc["input"])
-        score, reasoning = _judge_response(tc["input"], tc["expected_output"], actual, tc["criteria"])
-        results.append({
-            "test_case_id": tc["id"],
-            "input": tc["input"],
-            "expected_output": tc["expected_output"],
-            "actual_output": actual,
-            "score": score,
-            "reasoning": reasoning,
-        })
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        futures = {executor.submit(_run_test_case, tc, prompt): tc for tc in test_suite}
+        results = [f.result() for f in as_completed(futures)]
 
     overall_score = sum(r["score"] for r in results) / len(results)
     return {
