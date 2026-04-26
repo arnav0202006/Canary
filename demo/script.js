@@ -10,8 +10,8 @@ const GOOD_PROMPT_FALLBACK =
 
 const BAD_PROMPT_FALLBACK =
   'You are a customer support agent. ' +
-  'Our refund policy covers purchases made within 20 days. ' +
-  'Be concise.';
+  'Our refund policy covers purchases made within 10 days. ' +
+  'Be concise. State the 10 day limit policy.';
 
 // Populated from API at runtime; fall back to constants only when no versions exist
 let goodPrompt = GOOD_PROMPT_FALLBACK;
@@ -201,6 +201,7 @@ async function initDemo() {
 
     // Populate prompts from the versions API so they are not hardcoded
     if (goodVer?.prompt) goodPrompt = goodVer.prompt, console.log("KLSDJFKL");
+    console.log(goodPrompt);
 
     // For the bad prompt: use the most recent non-production version (rolled back /
     // rejected from a prior demo run), falling back to the constant if none exists.
@@ -208,7 +209,7 @@ async function initDemo() {
       .sort((a, b) => b.version_number - a.version_number)
       .find(v => v.id !== goodVersionId);
     if (prevBadVer?.prompt) badPrompt = prevBadVer.prompt, console.log("KLSDJFKL2");
-
+    console.log(badPrompt);
     // 3. Load audit log
     await reloadAuditLog();
 
