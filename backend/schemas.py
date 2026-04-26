@@ -23,6 +23,9 @@ class VersionCreate(BaseModel):
     prompt: str
     tools_config: dict = {}
     metadata: dict = {}
+    state: dict = {}
+    context: dict = {}
+    parent_version_id: Optional[str] = None
     created_by: str = "system"
 
 
@@ -31,7 +34,6 @@ class VersionResponse(BaseModel):
     agent_id: str
     version_number: int
     prompt: str
-    tools_config: str
     eval_score: Optional[float]
     status: str
     created_at: datetime
@@ -98,6 +100,31 @@ class AuditLogResponse(BaseModel):
     action: str
     actor: str
     details: str
+
+
+class ApiUsageCreate(BaseModel):
+    api_name: str
+    endpoint: str
+    method: str = "GET"
+    request_payload: dict = {}
+    response_payload: dict = {}
+    status_code: Optional[int] = None
+    duration_ms: Optional[int] = None
+
+
+class ApiUsageResponse(BaseModel):
+    id: str
+    version_id: str
+    api_name: str
+    endpoint: str
+    method: str
+    request_payload: str
+    response_payload: str
+    status_code: Optional[int]
+    duration_ms: Optional[int]
+    timestamp: datetime
+
+    model_config = {"from_attributes": True}
     created_at: datetime
 
     model_config = {"from_attributes": True}

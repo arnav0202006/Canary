@@ -18,6 +18,7 @@ class Agent(Base):
     description = Column(Text, default="")
     current_version_id = Column(String, nullable=True)
     last_known_good_id = Column(String, nullable=True)
+    monitor_threshold = Column(Float, default=0.70)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -31,10 +32,13 @@ class Version(Base):
 
     id = Column(String, primary_key=True, default=_gen_id)
     agent_id = Column(String, ForeignKey("agents.id"), nullable=False)
+    parent_version_id = Column(String, ForeignKey("versions.id"), nullable=True)  # For graph relationships
     version_number = Column(Integer, nullable=False)
     prompt = Column(Text, nullable=False)
     tools_config = Column(Text, default="{}")   # JSON string
     metadata_ = Column("metadata", Text, default="{}")  # JSON string
+    state = Column(Text, default="{}")  # JSON string - agent state/context
+    context = Column(Text, default="{}")  # JSON string - conversation context
     eval_score = Column(Float, nullable=True)
     # pending → tested → canary → production | rejected | rolled_back
     status = Column(String, default="pending")
@@ -42,7 +46,10 @@ class Version(Base):
     created_by = Column(String, default="system")
 
     agent = relationship("Agent", back_populates="versions", foreign_keys=[agent_id])
+    parent_version = relationship("Version", remote_side=[id], foreign_keys=[parent_version_id])
+    child_versions = relationship("Version", foreign_keys=[parent_version_id], overlaps="parent_version")
     eval_results = relationship("EvalResult", back_populates="version")
+    api_usages = relationship("ApiUsage", back_populates="version")
 
 
 class Deployment(Base):
@@ -76,6 +83,23 @@ class EvalResult(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     version = relationship("Version", back_populates="eval_results")
+
+
+class ApiUsage(Base):
+    __tablename__ = "api_usages"
+
+    id = Column(String, primary_key=True, default=_gen_id)
+    version_id = Column(String, ForeignKey("versions.id"), nullable=False)
+    api_name = Column(String, nullable=False)
+    endpoint = Column(String, nullable=False)
+    method = Column(String, default="GET")
+    request_payload = Column(Text, default="{}")  # JSON string
+    response_payload = Column(Text, default="{}")  # JSON string
+    status_code = Column(Integer, nullable=True)
+    duration_ms = Column(Integer, nullable=True)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+    version = relationship("Version", back_populates="api_usages")
 
 
 class AuditLog(Base):

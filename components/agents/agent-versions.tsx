@@ -1,8 +1,8 @@
 "use client"
 
-import { GitCommit, Plus, Minus, RotateCcw } from "lucide-react"
+import { GitCommit } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import type { AgentVersion } from "@/lib/data/agents"
 
@@ -20,7 +20,32 @@ function formatDate(timestamp: string): string {
   })
 }
 
+function StatusBadge({ message }: { message: string }) {
+  if (message.includes("status: production")) return (
+    <Badge variant="outline" className="bg-success/10 text-success border-success/30 text-xs">Production</Badge>
+  )
+  if (message.includes("status: rejected")) return (
+    <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/30 text-xs">Rejected</Badge>
+  )
+  if (message.includes("status: canary")) return (
+    <Badge variant="outline" className="bg-warning/10 text-warning border-warning/30 text-xs">Canary</Badge>
+  )
+  if (message.includes("status: rolled_back")) return (
+    <Badge variant="outline" className="bg-muted text-muted-foreground border-border text-xs">Rolled Back</Badge>
+  )
+  return (
+    <Badge variant="outline" className="text-xs">Pending</Badge>
+  )
+}
+
+function evalScore(message: string): string | null {
+  const match = message.match(/eval: (\d+)%/)
+  return match ? match[1] + "%" : null
+}
+
 export function AgentVersions({ versions }: AgentVersionsProps) {
+  const sorted = [...versions].reverse()
+
   return (
     <Card className="bg-card/50 border-border/50">
       <CardHeader>
@@ -29,70 +54,50 @@ export function AgentVersions({ versions }: AgentVersionsProps) {
       </CardHeader>
       <CardContent>
         <div className="relative">
-          {/* Timeline line */}
           <div className="absolute left-[19px] top-0 bottom-0 w-px bg-border" />
-          
           <div className="space-y-6">
-            {versions.map((version, index) => (
-              <div key={version.id} className="relative flex gap-4">
-                {/* Timeline dot */}
-                <div className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 ${
-                  index === 0 
-                    ? "bg-primary border-primary" 
-                    : "bg-background border-border"
-                }`}>
-                  <GitCommit className={`h-4 w-4 ${index === 0 ? "text-primary-foreground" : "text-muted-foreground"}`} />
-                </div>
-                
-                <div className="flex-1 rounded-lg border border-border/50 bg-muted/20 p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <div className="flex items-center gap-2">
+            {sorted.map((version, index) => {
+              const score = evalScore(version.message)
+              return (
+                <div key={version.id} className="relative flex gap-4">
+                  <div className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 ${
+                    index === 0
+                      ? "bg-primary border-primary"
+                      : "bg-background border-border"
+                  }`}>
+                    <GitCommit className={`h-4 w-4 ${index === 0 ? "text-primary-foreground" : "text-muted-foreground"}`} />
+                  </div>
+
+                  <div className="flex-1 rounded-lg border border-border/50 bg-muted/20 p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <code className="text-sm font-mono text-primary">{version.hash}</code>
                         <span className="text-sm font-medium">{version.version}</span>
                         {index === 0 && (
-                          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
-                            Current
-                          </span>
+                          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">Latest</span>
+                        )}
+                        <StatusBadge message={version.message} />
+                        {score && (
+                          <span className="text-xs font-mono text-muted-foreground">eval: {score}</span>
                         )}
                       </div>
-                      <p className="text-sm mt-1">{version.message}</p>
                     </div>
-                    {index !== 0 && (
-                      <Button variant="ghost" size="sm" className="gap-1 text-xs">
-                        <RotateCcw className="h-3 w-3" />
-                        Rollback
-                      </Button>
-                    )}
-                  </div>
-                  
-                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/50">
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-5 w-5">
-                        <AvatarFallback className="text-[10px] bg-muted">
-                          {version.authorAvatar}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-xs text-muted-foreground">{version.author}</span>
-                    </div>
-                    
-                    <div className="flex items-center gap-4 text-xs">
-                      <span className="flex items-center gap-1 text-success">
-                        <Plus className="h-3 w-3" />
-                        {version.changes.additions}
-                      </span>
-                      <span className="flex items-center gap-1 text-destructive">
-                        <Minus className="h-3 w-3" />
-                        {version.changes.deletions}
-                      </span>
-                      <span className="text-muted-foreground">
-                        {formatDate(version.createdAt)}
-                      </span>
+
+                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/50">
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-5 w-5">
+                          <AvatarFallback className="text-[10px] bg-muted">
+                            {version.authorAvatar}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-xs text-muted-foreground">{version.author}</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground">{formatDate(version.createdAt)}</span>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </CardContent>

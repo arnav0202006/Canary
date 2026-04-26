@@ -25,7 +25,7 @@ import {
   getErrorsByAgentId,
   type AgentStatus
 } from "@/lib/data/agents"
-import { fetchAgentById } from "@/lib/api/client"
+import { fetchAgentById, fetchVersionsByAgent } from "@/lib/api/client"
 import { AgentVersions } from "@/components/agents/agent-versions"
 import { AgentLogs } from "@/components/agents/agent-logs"
 import { AgentTraces } from "@/components/agents/agent-traces"
@@ -80,7 +80,8 @@ export default async function AgentDetailPage({
     notFound()
   }
 
-  const versions = getVersionsByAgentId(id)
+  const liveVersions = await fetchVersionsByAgent(id)
+  const versions = liveVersions ?? getVersionsByAgentId(id)
   const logs = getLogsByAgentId(id)
   const traces = getTracesByAgentId(id)
   const errors = getErrorsByAgentId(id)
@@ -161,7 +162,7 @@ export default async function AgentDetailPage({
         </TabsContent>
 
         <TabsContent value="logs" className="space-y-4">
-          <AgentLogs logs={logs} />
+          <AgentLogs logs={logs} isStreaming={false} />
         </TabsContent>
 
         <TabsContent value="traces" className="space-y-4">

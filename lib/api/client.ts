@@ -19,7 +19,6 @@ interface BackendVersion {
   agent_id: string
   version_number: number
   prompt: string
-  tools_config: string
   eval_score: number | null
   status: string
   created_at: string
