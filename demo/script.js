@@ -3,20 +3,23 @@
 let state = 'idle';
 
 // ─── DOM refs ────────────────────────────────────────────────────────────────
-const btnDeploy      = document.getElementById('btn-deploy');
-const statusPill     = document.getElementById('status-pill');
-const activeVersion  = document.getElementById('active-version');
-const errorPanel     = document.getElementById('error-panel');
-const successPanel   = document.getElementById('success-panel');
-const progressWrap   = document.getElementById('progress-wrap');
-const progressBar    = document.getElementById('progress-bar');
-const progressLabel  = document.getElementById('progress-label');
-const activityLog    = document.getElementById('activity-log');
-const rowV13         = document.getElementById('row-v13');
-const v13Chip        = document.getElementById('v13-chip');
-const rowV12         = document.getElementById('row-v12');
-const rpmValue       = document.getElementById('rpm-value');
-const errorRateValue = document.getElementById('error-rate-value');
+const btnDeploy        = document.getElementById('btn-deploy');
+const statusPill       = document.getElementById('status-pill');
+const activeVersion    = document.getElementById('active-version');
+const errorPanel       = document.getElementById('error-panel');
+const successPanel     = document.getElementById('success-panel');
+const progressWrap     = document.getElementById('progress-wrap');
+const progressBar      = document.getElementById('progress-bar');
+const progressLabel    = document.getElementById('progress-label');
+const activityLog      = document.getElementById('activity-log');
+const rowV13           = document.getElementById('row-v13');
+const v13Chip          = document.getElementById('v13-chip');
+const rowV12           = document.getElementById('row-v12');
+const rpmValue         = document.getElementById('rpm-value');
+const errorRateValue   = document.getElementById('error-rate-value');
+const chatWindow       = document.getElementById('chat-window');
+const chatPlaceholder  = document.getElementById('chat-placeholder');
+const chatVersionBadge = document.getElementById('chat-version-badge');
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function setStatus(label, cls) {
@@ -53,6 +56,104 @@ function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+// ─── Chat helpers ─────────────────────────────────────────────────────────────
+function clearChat() {
+  chatWindow.innerHTML = '';
+}
+
+function showTyping() {
+  const row = document.createElement('div');
+  row.className = 'typing-row';
+  row.id = 'typing-indicator';
+  row.innerHTML = `
+    <div class="bubble-avatar agent-avatar">AI</div>
+    <div class="typing-bubble">
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+    </div>`;
+  chatWindow.appendChild(row);
+}
+
+function hideTyping() {
+  const t = document.getElementById('typing-indicator');
+  if (t) t.remove();
+}
+
+function addUserBubble(text) {
+  chatPlaceholder.style.display = 'none';
+  const row = document.createElement('div');
+  row.className = 'bubble-row user-row';
+  row.innerHTML = `
+    <div class="bubble-avatar user-avatar">You</div>
+    <div class="bubble">${text}</div>`;
+  chatWindow.appendChild(row);
+}
+
+function addAgentBubble(text, variant = '', annotation = '') {
+  hideTyping();
+  const row = document.createElement('div');
+  row.className = 'bubble-row agent-row';
+  const annotationHTML = annotation
+    ? `<br><span class="${annotation.cls}">${annotation.icon} ${annotation.text}</span>`
+    : '';
+  row.innerHTML = `
+    <div class="bubble-avatar agent-avatar">AI</div>
+    <div class="bubble ${variant ? 'bubble-' + variant : ''}">${text}${annotationHTML}</div>`;
+  chatWindow.appendChild(row);
+}
+
+function addChatDivider(text) {
+  const d = document.createElement('div');
+  d.className = 'chat-reset-banner';
+  d.textContent = text;
+  chatWindow.appendChild(d);
+}
+
+async function runBadConversation() {
+  chatVersionBadge.textContent = 'v1.3';
+  chatVersionBadge.style.color = '#ef4444';
+
+  addUserBubble("Hi, I purchased an item 25 days ago and I'd like to request a refund.");
+
+  await delay(400);
+  showTyping();
+  await delay(1800);
+
+  addAgentBubble(
+    "I'm sorry, but our refund policy only covers purchases made within <strong>25 days</strong>. Unfortunately, since your purchase was 25 days ago, you are no longer eligible for a refund. Is there anything else I can help you with?",
+    'bad',
+    {
+      cls: 'violation-tag',
+      icon: '⚠',
+      text: 'Policy violation — refund window is 30 days, not 25'
+    }
+  );
+}
+
+async function runGoodConversation() {
+  addChatDivider('— Rolled back to v1.2 · replaying same request —');
+  chatVersionBadge.textContent = 'v1.2';
+  chatVersionBadge.style.color = '';
+
+  await delay(600);
+  addUserBubble("Hi, I purchased an item 25 days ago and I'd like to request a refund.");
+
+  await delay(400);
+  showTyping();
+  await delay(1800);
+
+  addAgentBubble(
+    "Of course! Our return policy covers purchases within <strong>30 days</strong>, and since you're well within that window, you're fully eligible. I'll process your refund right away — you should see it within 3–5 business days.",
+    'good',
+    {
+      cls: 'correct-tag',
+      icon: '✓',
+      text: 'Correct — 25 days is within the 30-day policy'
+    }
+  );
+}
+
 // ─── Deploy flow ─────────────────────────────────────────────────────────────
 async function startDeploy() {
   if (state !== 'idle') return;
@@ -83,6 +184,7 @@ async function startDeploy() {
   progressLabel.textContent = 'Running canary evaluation…';
   addLog('Canary evaluation started — routing 10% of traffic to v1.3');
   animateProgress(72, 900, null);
+  runBadConversation();
 
   await delay(1100);
   progressLabel.textContent = 'Running health checks…';
@@ -197,6 +299,8 @@ function completeRollback() {
   addLog('Post-rollback health check passed — error rate 0.3%', 'success');
   addLog('Audit event: automatic_rollback_completed logged', 'success');
 
+  runGoodConversation();
+
   // Re-enable deploy as retry
   btnDeploy.textContent = 'Deploy v1.3';
   btnDeploy.disabled = false;
@@ -242,6 +346,13 @@ function resetDemo() {
     Deploy v1.3
   `;
   btnDeploy.onclick = startDeploy;
+
+  // Reset chat
+  chatWindow.innerHTML = '';
+  chatPlaceholder.style.display = '';
+  chatWindow.appendChild(chatPlaceholder);
+  chatVersionBadge.textContent = 'v1.2';
+  chatVersionBadge.style.color = '';
 
   // Reset log
   activityLog.innerHTML = `
