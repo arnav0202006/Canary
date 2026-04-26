@@ -7,7 +7,6 @@ import {
   LayoutDashboard,
   Bot,
   Rocket,
-  BarChart3,
   Settings,
   HelpCircle,
   LogOut,
@@ -52,11 +51,6 @@ const mainNavItems = [
     title: "Deployments",
     url: "/dashboard/deployments",
     icon: Rocket,
-  },
-  {
-    title: "Analytics",
-    url: "/dashboard/analytics",
-    icon: BarChart3,
   },
 ]
 
