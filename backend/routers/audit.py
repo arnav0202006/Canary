@@ -12,8 +12,7 @@ router = APIRouter(prefix="/agents", tags=["audit"])
 
 @router.get("/{agent_id}/audit/logs", response_model=list[AuditLogResponse])
 def get_audit_logs(agent_id: str, since: Optional[str] = None, limit: int = 50, db: Session = Depends(get_db)):
-    """Get audit logs for an agent (alias for /audit)"""
-    return get_audit_log(agent_id, since, db)[:limit]
+    """Get audit logs for an agent."""
     agent = db.query(Agent).filter(Agent.id == agent_id).first()
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
@@ -26,7 +25,7 @@ def get_audit_logs(agent_id: str, since: Optional[str] = None, limit: int = 50, 
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid datetime format for 'since'. Use ISO 8601.")
 
-    return query.order_by(AuditLog.created_at.desc()).all()
+    return query.order_by(AuditLog.created_at.desc()).limit(limit).all()
 
 
 @router.get("/audit/search")

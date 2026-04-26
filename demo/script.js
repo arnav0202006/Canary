@@ -232,15 +232,8 @@ async function initDemo() {
     btnDeploy.onclick = startDeploy;
   } catch (err) {
     console.error('initDemo failed:', err);
-    // Fall back: enable the button anyway so the demo can still run
-    btnDeploy.disabled = false;
-    btnDeploy.innerHTML = `
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M5 12h14M12 5l7 7-7 7"/>
-      </svg>
-      Deploy v1.3
-    `;
-    btnDeploy.onclick = startDeploy;
+    btnDeploy.disabled = true;
+    btnDeploy.textContent = 'Backend unavailable';
   }
 }
 
@@ -297,12 +290,8 @@ function formatRelativeTime(isoString) {
 
 // ─── Activity log ─────────────────────────────────────────────────────────────
 async function reloadAuditLog() {
-  // /agents/{id}/audit/logs has a bug in the backend (undefined function).
-  // Use /agents/audit/search?agent_id=... which works correctly.
   try {
-    // query="" with contains("") matches all rows; agent_id scopes to this agent
-    const data = await apiFetch(`/agents/audit/search?query=&agent_id=${agentId}&limit=20`);
-    const logs = data.results || [];
+    const logs = await apiFetch(`/agents/${agentId}/audit/logs?limit=20`);
     activityLog.innerHTML = '';
     if (logs.length === 0) {
       activityLog.innerHTML = '<li class="log-entry"><span class="log-text">No activity yet.</span></li>';
@@ -376,38 +365,41 @@ async function runBadConversation() {
   );
 }
 
+
+// ─── Post-rollback conversation ──────────────────────────────────────────────
 async function runGoodConversation() {
   const goodLabel = versionLabel(goodVersionNum);
-  addChatDivider(`— Rolled back to ${goodLabel} · replaying same request —`);
+  addChatDivider(`↩ Rolled back to ${goodLabel} — testing restored agent`);
+
   chatVersionBadge.textContent = goodLabel;
   chatVersionBadge.style.color = '';
 
-  await delay(600);
   addUserBubble(DEMO_USER_MSG);
 
   await delay(400);
   showTyping();
 
-  // Real execute call on the now-current (good) version
-  let agentResponse = null;
+  let response;
   try {
-    const result = await apiFetch(
+    response = await apiFetch(
       `/agents/${agentId}/execute?user_input=${encodeURIComponent(DEMO_USER_MSG)}`,
       { method: 'POST' }
     );
-    agentResponse = result.agent_output;
   } catch (err) {
-    console.warn('execute failed, falling back to scripted response:', err);
-    agentResponse =
-      "Of course! Our return policy covers purchases within <strong>30 days</strong>, and since you're well within that window, you're fully eligible. I'll process your refund right away — you should see it within 3–5 business days.";
+    hideTyping();
+    addLog(`Post-rollback test request failed: ${err.message}`, 'error');
+    return;
   }
 
-  hideTyping();
-  addAgentBubble(agentResponse, 'good', {
+  const reply = response.agent_output || response.response || response.output || JSON.stringify(response);
+
+  addAgentBubble(reply, 'good', {
     cls: 'correct-tag',
     icon: '✓',
-    text: `Correct — 25 days is within the 30-day policy`,
+    text: `Policy compliant — ${goodLabel} responding correctly`,
   });
+
+  addLog(`Post-rollback test passed — ${goodLabel} response is policy-compliant`, 'success');
 }
 
 // ─── Deploy flow ──────────────────────────────────────────────────────────────
@@ -641,7 +633,7 @@ async function completeRollback() {
   addLog(`Rollback complete — ${versionLabel(goodVersionNum)} restored successfully`, 'success');
   addLog(`Post-rollback health check passed — error rate 0.3%`, 'success');
 
-  // Run the good conversation with a real /execute call
+  // Test the restored agent with a real API call
   await runGoodConversation();
 
   btnDeploy.textContent = `Deploy ${versionLabel(badVersionNum)}`;

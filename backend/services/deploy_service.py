@@ -41,7 +41,7 @@ def deploy(db: Session, agent_id: str, version_id: str, traffic_percentage: int,
     _log(db, agent_id, "deploy_started", version_id, {"deployment_id": deployment.id, "threshold": eval_threshold}, actor)
 
     # Gate 1: behavioral eval
-    eval_result = run_eval(version_id, version.prompt, eval_threshold)
+    eval_result = run_eval(version_id, version.prompt, eval_threshold, db=db)
     version.eval_score = eval_result["overall_score"]
     version.status = "tested"
     db.commit()
@@ -71,17 +71,19 @@ def deploy(db: Session, agent_id: str, version_id: str, traffic_percentage: int,
     _log(db, agent_id, "canary_started", version_id, {"traffic_percentage": traffic_percentage}, actor)
 
     # Simulate canary health check with a second eval pass
-    canary_eval = run_eval(version_id, version.prompt, eval_threshold)
+    canary_eval = run_eval(version_id, version.prompt, eval_threshold, db=db)
 
     if not canary_eval["passed"]:
+        lkg_before = agent.last_known_good_id
         _rollback_to_lkg(db, agent, version, deployment, canary_eval["overall_score"], eval_threshold, actor)
+        restored = lkg_before or "none (no prior good version)"
         return {
             "deployment_id": deployment.id,
             "agent_id": agent_id,
             "version_id": version_id,
             "status": "rolled_back",
             "eval_score": canary_eval["overall_score"],
-            "message": f"Canary failed — live score {canary_eval['overall_score']:.0%} dropped below {eval_threshold:.0%}. Auto-rolled back to {agent.last_known_good_id}.",
+            "message": f"Canary failed — live score {canary_eval['overall_score']:.0%} dropped below {eval_threshold:.0%}. Auto-rolled back to {restored}.",
         }
 
     # Promote to production
@@ -135,6 +137,10 @@ def _rollback_to_lkg(db: Session, agent: Agent, failed_version: Version, deploym
 
     if agent.last_known_good_id:
         agent.current_version_id = agent.last_known_good_id
+    else:
+        # No LKG exists yet — clear the current version so the agent isn't
+        # stuck serving a version that failed canary.
+        agent.current_version_id = None
 
     db.commit()
     _log(db, agent.id, "canary_rollback", failed_version.id, {

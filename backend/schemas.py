@@ -100,6 +100,9 @@ class AuditLogResponse(BaseModel):
     action: str
     actor: str
     details: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
 
 
 class ApiUsageCreate(BaseModel):
@@ -123,8 +126,5 @@ class ApiUsageResponse(BaseModel):
     status_code: Optional[int]
     duration_ms: Optional[int]
     timestamp: datetime
-
-    model_config = {"from_attributes": True}
-    created_at: datetime
 
     model_config = {"from_attributes": True}
