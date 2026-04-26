@@ -50,10 +50,10 @@ const features = [
 ]
 
 const cliCommands = [
-  { prompt: "~", command: "canary init my-agent", output: null },
+  { prompt: "~", command: "canary init", output: null },
   { prompt: null, command: null, output: "Initializing..." },
   { prompt: null, command: null, output: "Created .canary/config.yaml" },
-  { prompt: "~", command: "canary push --deploy", output: null },
+  { prompt: "~", command: "canary deploy", output: null },
   { prompt: null, command: null, output: "Building... done (1.2s)" },
   { prompt: null, command: null, output: "Tests: 23 passed" },
   { prompt: null, command: null, output: "Deployed to production" },
@@ -245,7 +245,7 @@ export default function LandingPage() {
                 { 
                   num: "01", 
                   title: "Link your agent", 
-                  cmd: "canary init",
+                  cmd: "canary deploy",
                   desc: "Point Canary at your agent. Any framework. Any runtime. One command." 
                 },
                 { 
@@ -257,7 +257,7 @@ export default function LandingPage() {
                 { 
                   num: "03", 
                   title: "Watch it run", 
-                  cmd: "canary logs --live",
+                  cmd: "canary monitor",
                   desc: "Real-time logs, traces, and metrics. See everything your agent does, as it happens." 
                 },
               ].map((step, i) => (
@@ -327,13 +327,13 @@ export default function LandingPage() {
                   <div><span className="text-primary">canary</span> - version control for AI agents</div>
                   <div className="pt-2">COMMANDS:</div>
                   <div className="pl-4">
-                    <div><span className="text-foreground">init</span>      Initialize a new agent project</div>
+                    <div><span className="text-foreground">agent</span>      Initialize a new agent project</div>
                     <div><span className="text-foreground">push</span>      Push changes and deploy</div>
-                    <div><span className="text-foreground">pull</span>      Pull remote changes</div>
+                    <div><span className="text-foreground">eval</span>      Pull remote changes</div>
                     <div><span className="text-foreground">logs</span>      Stream live logs</div>
-                    <div><span className="text-foreground">trace</span>     View execution traces</div>
-                    <div><span className="text-foreground">rollback</span>  Revert to previous version</div>
-                    <div><span className="text-foreground">status</span>    Check deployment status</div>
+                    <div><span className="text-foreground">version</span>     View execution traces</div>
+                    <div><span className="text-foreground">usage</span>  Revert to previous version</div>
+                    <div><span className="text-foreground">config</span>    Check deployment status</div>
                   </div>
                   <div className="pt-2">FLAGS:</div>
                   <div className="pl-4">
