@@ -2,9 +2,10 @@ import json
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import anthropic
+from sqlalchemy.orm import Session
 
 _client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 _TEST_SUITE_PATH = Path(__file__).parent.parent.parent / "evals" / "test_suite.json"
@@ -66,7 +67,8 @@ def _run_test_case(tc: dict, prompt: str) -> dict:
     }
 
 
-def run_eval(version_id: str, prompt: str, threshold: float = 0.90) -> dict:
+def run_eval(version_id: str, prompt: str, threshold: float = 0.90,
+             db: Optional[Session] = None) -> dict:
     test_suite = load_test_suite()
 
     with ThreadPoolExecutor(max_workers=10) as executor:
@@ -74,6 +76,22 @@ def run_eval(version_id: str, prompt: str, threshold: float = 0.90) -> dict:
         results = [f.result() for f in as_completed(futures)]
 
     overall_score = sum(r["score"] for r in results) / len(results)
+
+    if db is not None:
+        from ..models import EvalResult
+        for r in results:
+            row = EvalResult(
+                version_id=version_id,
+                test_case_id=r["test_case_id"],
+                input=r["input"],
+                expected_output=r["expected_output"],
+                actual_output=r["actual_output"],
+                score=r["score"],
+                reasoning=r["reasoning"],
+            )
+            db.add(row)
+        db.commit()
+
     return {
         "version_id": version_id,
         "overall_score": round(overall_score, 4),

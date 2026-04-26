@@ -10,6 +10,19 @@ from ..schemas import ApiUsageCreate, ApiUsageResponse
 router = APIRouter(prefix="/usage", tags=["usage"])
 
 
+def _parse_period(period: str) -> datetime:
+    """Parse a period string like '24h' or '7d' into a since-time datetime."""
+    try:
+        if period.endswith("h"):
+            return datetime.utcnow() - timedelta(hours=int(period[:-1]))
+        elif period.endswith("d"):
+            return datetime.utcnow() - timedelta(days=int(period[:-1]))
+    except ValueError:
+        pass
+    from fastapi import HTTPException
+    raise HTTPException(status_code=400, detail="Invalid period format. Use e.g. '24h' or '7d'.")
+
+
 @router.get("/agents/{agent_id}")
 def get_agent_usage(agent_id: str, period: str = "24h", db: Session = Depends(get_db)):
     """Get API usage statistics for an agent"""
@@ -18,11 +31,7 @@ def get_agent_usage(agent_id: str, period: str = "24h", db: Session = Depends(ge
         raise HTTPException(status_code=404, detail="Agent not found")
     
     # Parse period
-    if period.endswith("h"):
-        hours = int(period[:-1])
-        since_time = datetime.utcnow() - timedelta(hours=hours)
-    else:
-        raise HTTPException(status_code=400, detail="Invalid period format. Use '24h', '7d', etc.")
+    since_time = _parse_period(period)
     
     # Get all versions for this agent
     versions = db.query(Version).filter(Version.agent_id == agent_id).all()
@@ -49,7 +58,7 @@ def get_agent_usage(agent_id: str, period: str = "24h", db: Session = Depends(ge
             }
         
         api_stats[api_name]["total_calls"] += 1
-        api_stats[api_name]["total_duration"] += usage.duration_ms
+        api_stats[api_name]["total_duration"] += usage.duration_ms or 0
         
         endpoint = usage.endpoint
         if endpoint not in api_stats[api_name]["endpoints"]:
@@ -76,13 +85,8 @@ def get_version_usage(version_id: str, period: str = "24h", db: Session = Depend
     if not version:
         raise HTTPException(status_code=404, detail="Version not found")
     
-    # Parse period
-    if period.endswith("h"):
-        hours = int(period[:-1])
-        since_time = datetime.utcnow() - timedelta(hours=hours)
-    else:
-        raise HTTPException(status_code=400, detail="Invalid period format. Use '24h', '7d', etc.")
-    
+    since_time = _parse_period(period)
+
     usages = db.query(ApiUsage).filter(
         ApiUsage.version_id == version_id,
         ApiUsage.timestamp >= since_time
@@ -110,13 +114,8 @@ def get_version_usage(version_id: str, period: str = "24h", db: Session = Depend
 @router.get("/stats")
 def get_usage_stats(group_by: str = "agent", period: str = "24h", db: Session = Depends(get_db)):
     """Get aggregated usage statistics"""
-    # Parse period
-    if period.endswith("h"):
-        hours = int(period[:-1])
-        since_time = datetime.utcnow() - timedelta(hours=hours)
-    else:
-        raise HTTPException(status_code=400, detail="Invalid period format. Use '24h', '7d', etc.")
-    
+    since_time = _parse_period(period)
+
     usages = db.query(ApiUsage).filter(ApiUsage.timestamp >= since_time).all()
     
     if group_by == "agent":
@@ -135,7 +134,7 @@ def get_usage_stats(group_by: str = "agent", period: str = "24h", db: Session = 
                     }
                 
                 agent_stats[agent_id]["total_calls"] += 1
-                agent_stats[agent_id]["total_duration"] += usage.duration_ms
+                agent_stats[agent_id]["total_duration"] += usage.duration_ms or 0
                 agent_stats[agent_id]["apis_used"].add(usage.api_name)
         
         # Convert sets to lists
@@ -164,7 +163,7 @@ def get_usage_stats(group_by: str = "agent", period: str = "24h", db: Session = 
                 }
             
             version_stats[version_id]["total_calls"] += 1
-            version_stats[version_id]["total_duration"] += usage.duration_ms
+            version_stats[version_id]["total_duration"] += usage.duration_ms or 0
             version_stats[version_id]["apis_used"].add(usage.api_name)
         
         # Convert sets to lists and add agent info

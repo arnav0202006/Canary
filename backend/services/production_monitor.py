@@ -433,18 +433,57 @@ class ProductionMonitor:
 
     def get_monitoring_stats(self, db: Session, agent_id: str,
                            hours: int = 24) -> Dict[str, Any]:
-        """Gets monitoring statistics for an agent"""
-        # This would query audit logs for monitoring events
-        # For now, return a placeholder structure
+        """Gets monitoring statistics for an agent from audit logs and api_usages."""
+        from datetime import timedelta
+        from ..models import AuditLog, ApiUsage, Version
+        import json as _json
+
+        since = datetime.utcnow() - timedelta(hours=hours)
+
+        logs = db.query(AuditLog).filter(
+            AuditLog.agent_id == agent_id,
+            AuditLog.created_at >= since
+        ).all()
+
+        action_counts: Dict[str, int] = {}
+        for log in logs:
+            action_counts[log.action] = action_counts.get(log.action, 0) + 1
+
+        violations_detected = action_counts.get("critical_violation_detected", 0)
+        warnings_issued = action_counts.get("warning_issued", 0)
+        automatic_rollbacks = action_counts.get("automatic_rollback", 0)
+
+        # Risk scores are stored in audit log details for monitor events
+        risk_scores = []
+        for log in logs:
+            if log.action in ("monitor_check", "critical_violation_detected", "warning_issued"):
+                try:
+                    details = _json.loads(log.details or "{}")
+                    if "risk_score" in details:
+                        risk_scores.append(float(details["risk_score"]))
+                except (ValueError, TypeError):
+                    pass
+
+        avg_risk_score = sum(risk_scores) / len(risk_scores) if risk_scores else 0.0
+
+        # Total requests: count api_usages for agent's versions in time window
+        versions = db.query(Version).filter(Version.agent_id == agent_id).all()
+        version_ids = [v.id for v in versions]
+        total_requests = 0
+        if version_ids:
+            total_requests = db.query(ApiUsage).filter(
+                ApiUsage.version_id.in_(version_ids),
+                ApiUsage.timestamp >= since
+            ).count()
+
         return {
             "agent_id": agent_id,
             "time_range_hours": hours,
-            "total_requests": 0,
-            "avg_risk_score": 0.0,
-            "violations_detected": 0,
-            "warnings_issued": 0,
-            "automatic_rollbacks": 0,
-            "uptime_percentage": 100.0
+            "total_requests": total_requests,
+            "avg_risk_score": round(avg_risk_score, 4),
+            "violations_detected": violations_detected,
+            "warnings_issued": warnings_issued,
+            "automatic_rollbacks": automatic_rollbacks,
         }
 
 

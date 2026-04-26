@@ -87,7 +87,7 @@ def eval_version(agent_id: str, version_id: str, threshold: float = 0.90, db: Se
     if not version:
         raise HTTPException(status_code=404, detail="Version not found")
 
-    result = run_eval(version_id, version.prompt, threshold)
+    result = run_eval(version_id, version.prompt, threshold, db=db)
     version.eval_score = result["overall_score"]
     db.commit()
 
@@ -122,8 +122,10 @@ def list_evaluations(agent_id: str, db: Session = Depends(get_db)):
             {
                 "id": e.id,
                 "version_id": e.version_id,
+                "test_case_id": e.test_case_id,
                 "score": e.score,
-                "results": e.results,
+                "actual_output": e.actual_output,
+                "reasoning": e.reasoning,
                 "created_at": e.created_at.isoformat()
             } for e in evals
         ],
@@ -147,7 +149,7 @@ def run_version_eval(version_id: str, threshold: float = 0.90, db: Session = Dep
     if not version:
         raise HTTPException(status_code=404, detail="Version not found")
 
-    result = run_eval(version_id, version.prompt, threshold)
+    result = run_eval(version_id, version.prompt, threshold, db=db)
     version.eval_score = result["overall_score"]
     db.commit()
 
@@ -176,8 +178,10 @@ def get_version_eval_results(version_id: str, db: Session = Depends(get_db)):
         "evaluations": [
             {
                 "id": e.id,
+                "test_case_id": e.test_case_id,
                 "score": e.score,
-                "results": e.results,
+                "actual_output": e.actual_output,
+                "reasoning": e.reasoning,
                 "created_at": e.created_at.isoformat()
             } for e in evals
         ],
