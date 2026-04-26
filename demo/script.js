@@ -4,7 +4,6 @@ let state = 'idle';
 
 // ─── DOM refs ────────────────────────────────────────────────────────────────
 const btnDeploy      = document.getElementById('btn-deploy');
-const btnRollback    = document.getElementById('btn-rollback');
 const statusPill     = document.getElementById('status-pill');
 const activeVersion  = document.getElementById('active-version');
 const errorPanel     = document.getElementById('error-panel');
@@ -124,18 +123,19 @@ function triggerError() {
   addLog('P99 latency: 4,210ms — degraded performance detected', 'error');
   addLog('Canary evaluation FAILED — deployment halted', 'error');
 
-  // Show rollback button
-  btnRollback.classList.remove('hidden');
   btnDeploy.disabled = true;
+
+  // Automatically trigger rollback after a short pause
+  setTimeout(() => {
+    addLog('Automatic rollback triggered by Canary monitor', 'warn');
+    startRollback();
+  }, 1500);
 }
 
 // ─── Rollback flow ────────────────────────────────────────────────────────────
 async function startRollback() {
   if (state !== 'error') return;
   state = 'rolling_back';
-
-  // Disable rollback button during animation
-  btnRollback.disabled = true;
 
   // Status → Rolling back
   setStatus('Rolling Back', 'pill-rolling');
@@ -197,8 +197,7 @@ function completeRollback() {
   addLog('Post-rollback health check passed — error rate 0.3%', 'success');
   addLog('Audit event: automatic_rollback_completed logged', 'success');
 
-  // Hide rollback btn, re-enable deploy (shows as "Redeploy")
-  btnRollback.classList.add('hidden');
+  // Re-enable deploy as retry
   btnDeploy.textContent = 'Deploy v1.3';
   btnDeploy.disabled = false;
   btnDeploy.innerHTML = `
@@ -235,8 +234,6 @@ function resetDemo() {
 
   rowV12.classList.add('row-active');
 
-  btnRollback.classList.add('hidden');
-  btnRollback.disabled = false;
   btnDeploy.disabled = false;
   btnDeploy.innerHTML = `
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
