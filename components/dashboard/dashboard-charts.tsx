@@ -1,6 +1,6 @@
 "use client"
 
-import { Bar, BarChart, Cell, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend } from "recharts"
+import { Bar, BarChart, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend } from "recharts"
 
 interface DeploymentData {
   date: string
@@ -44,34 +44,20 @@ export function DashboardCharts({ data }: { data: DeploymentData[] }) {
           />
           <Bar 
             dataKey="success" 
-            stroke="hsl(0 0% 70%)"
+            fill="hsl(142 76% 36%)"
+            stroke="hsl(142 76% 36%)"
             strokeWidth={1}
             radius={[4, 4, 0, 0]}
             name="Successful"
-          >
-            {data.map((entry, index) => (
-              <Cell
-                key={`success-${index}`}
-                fill="hsl(0 0% 70%)"
-                stroke="hsl(0 0% 70%)"
-              />
-            ))}
-          </Bar>
+          />
           <Bar 
             dataKey="failed" 
-            stroke="hsl(0 0% 50%)"
+            fill="hsl(0 84% 60%)"
+            stroke="hsl(0 84% 60%)"
             strokeWidth={1}
             radius={[4, 4, 0, 0]}
             name="Failed"
-          >
-            {data.map((entry, index) => (
-              <Cell
-                key={`failed-${index}`}
-                fill="hsl(0 0% 50%)"
-                stroke="hsl(0 0% 50%)"
-              />
-            ))}
-          </Bar>
+          />
         </BarChart>
       </ResponsiveContainer>
     </div>

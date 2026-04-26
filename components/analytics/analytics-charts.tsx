@@ -8,7 +8,6 @@ import {
   LineChart,
   Bar,
   BarChart,
-  Cell,
   XAxis, 
   YAxis, 
   CartesianGrid,
@@ -29,7 +28,7 @@ interface AnalyticsChartsProps {
 // Transform data for charts
 function transformTimeSeriesData(data: MetricDataPoint[], hours: number = 24) {
   return data.slice(-hours).map((d, i) => ({
-    time: `${i}h`,
+    time: i % 4 === 0 || i === hours - 1 ? `${i}h` : '',
     value: Math.round(d.value)
   }))
 }
@@ -54,7 +53,7 @@ export function AnalyticsCharts({
         <CardContent>
           <div className="h-[250px] bg-muted rounded p-2">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={requests}>
+              <AreaChart data={requests} margin={{ top: 5, right: 25, left: 5, bottom: 5 }}>
                 <defs>
                   <linearGradient id="requestGradientAnalytics" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="hsl(200 100% 70%)" stopOpacity={0.4} />
@@ -66,7 +65,8 @@ export function AnalyticsCharts({
                   tickLine={false}
                   axisLine={false}
                   tick={{ fill: 'hsl(0 0% 70%)', fontSize: 11 }}
-                  interval="preserveStartEnd"
+                  interval={0}
+                  tickFormatter={(value) => value}
                 />
                 <YAxis 
                   tickLine={false}
@@ -107,13 +107,14 @@ export function AnalyticsCharts({
         <CardContent>
           <div className="h-[250px] bg-muted rounded p-2">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={errors}>
+              <LineChart data={errors} margin={{ top: 5, right: 25, left: 5, bottom: 5 }}>
                 <XAxis 
                   dataKey="time" 
                   tickLine={false}
                   axisLine={false}
                   tick={{ fill: 'hsl(0 0% 70%)', fontSize: 11 }}
-                  interval="preserveStartEnd"
+                  interval={0}
+                  tickFormatter={(value) => value}
                 />
                 <YAxis 
                   tickLine={false}
@@ -187,34 +188,20 @@ export function AnalyticsCharts({
                 />
                 <Bar 
                   dataKey="success" 
-                  stroke="hsl(0 0% 70%)"
+                  fill="hsl(142 76% 36%)"
+                  stroke="hsl(142 76% 36%)"
                   strokeWidth={1}
                   radius={[4, 4, 0, 0]}
                   name="Success"
-                >
-                  {deploymentsData.map((entry, index) => (
-                    <Cell
-                      key={`success-${index}`}
-                      fill="hsl(0 0% 70%)"
-                      stroke="hsl(0 0% 70%)"
-                    />
-                  ))}
-                </Bar>
+                />
                 <Bar 
                   dataKey="failed" 
-                  stroke="hsl(0 0% 50%)"
+                  fill="hsl(0 84% 60%)"
+                  stroke="hsl(0 84% 60%)"
                   strokeWidth={1}
                   radius={[4, 4, 0, 0]}
                   name="Failed"
-                >
-                  {deploymentsData.map((entry, index) => (
-                    <Cell
-                      key={`failed-${index}`}
-                      fill="hsl(0 0% 50%)"
-                      stroke="hsl(0 0% 50%)"
-                    />
-                  ))}
-                </Bar>
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -262,18 +249,11 @@ export function AnalyticsCharts({
                 />
                 <Bar 
                   dataKey="count" 
+                  fill="hsl(0 0% 60%)"
                   stroke="hsl(0 0% 60%)"
                   strokeWidth={1}
                   radius={[0, 4, 4, 0]}
-                >
-                  {latencyData.map((entry, index) => (
-                    <Cell
-                      key={`latency-${index}`}
-                      fill="hsl(0 0% 60%)"
-                      stroke="hsl(0 0% 60%)"
-                    />
-                  ))}
-                </Bar>
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
