@@ -150,25 +150,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Social Proof - Raw Numbers */}
-      <section className="border-y border-border/40 bg-card/20 py-8">
-        <div className="container">
-          <div className="flex flex-wrap justify-center items-center gap-x-16 gap-y-6 font-mono">
-            {[
-              { value: "12,847", label: "agents tracked" },
-              { value: "847M", label: "executions/mo" },
-              { value: "99.97%", label: "uptime" },
-              { value: "~45ms", label: "p95 latency" },
-            ].map((stat) => (
-              <div key={stat.label} className="flex items-baseline gap-3">
-                <span className="text-2xl md:text-3xl font-bold text-primary">{stat.value}</span>
-                <span className="text-sm text-muted-foreground">{stat.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* The Problem - Direct, Punchy */}
       <section className="py-32">
         <div className="container">
