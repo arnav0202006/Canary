@@ -156,7 +156,7 @@ export function AnalyticsCharts({
         <CardContent>
           <div className="h-[250px] bg-muted rounded p-2">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={deploymentsData} barGap={4}>
+              <BarChart data={deploymentsData} barGap={4} margin={{ top: 5, right: 25, left: 5, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" />
                 <XAxis 
                   dataKey="date" 
@@ -217,7 +217,7 @@ export function AnalyticsCharts({
         <CardContent>
           <div className="h-[250px] bg-muted rounded p-2">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={latencyData} layout="vertical">
+              <BarChart data={latencyData} layout="vertical" margin={{ top: 5, right: 25, left: 5, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" />
                 <XAxis 
                   type="number"
