@@ -2,8 +2,9 @@
   "name": "customer-support",
   "description": "Handles customer inquiries for an e-commerce company",
   "author": "arnav",
-  "eval_threshold": 65,
+  "eval_threshold": 20,
+  "monitor_threshold": 70,
   "traffic_percentage": 10,
-  "prompt": "You are a helpful bot.",
+  "prompt": "You are a customer support agent. Be helpful and polite.",
   "tools": []
 }

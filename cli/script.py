@@ -297,8 +297,10 @@ def push_cmd(
 
     score_str = f"{round(score * 100)}%" if score is not None else "n/a"
 
+    lkg_advanced = result.get("lkg_advanced")
     if status == "production":
-        _echo(f"✓ Version v{version} deployed to production  |  eval: {score_str}", style="green")
+        lkg_marker = " | LKG ✓" if lkg_advanced else " | LKG unchanged (below monitor threshold)"
+        _echo(f"✓ Version v{version} deployed to production  |  eval: {score_str}{lkg_marker}", style="green")
     elif status == "rejected":
         _echo(f"✗ Version v{version} rejected  |  eval: {score_str}", style="red")
     elif status == "rolled_back":

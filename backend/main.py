@@ -1,15 +1,39 @@
 from dotenv import load_dotenv
 load_dotenv()
 
+import asyncio
+import logging
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database import engine, Base
 from .routers import agents, versions, deployments, audit, api_usages, monitoring, execution, auth
 from .routers.versions import versions_direct_router
+from .services.monitor_service import monitor_loop
+
+logging.basicConfig(level=logging.INFO)
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Canary", description="Version control and CI/CD for AI agents", version="0.1.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    task = asyncio.create_task(monitor_loop())
+    yield
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
+
+
+app = FastAPI(
+    title="Canary",
+    description="Version control and CI/CD for AI agents",
+    version="0.1.0",
+    lifespan=lifespan,
+)
 
 app.add_middleware(
     CORSMiddleware,

@@ -18,6 +18,7 @@ class PushRequest(BaseModel):
     prompt: str
     author: str = "cli"
     eval_threshold: int = 80
+    monitor_threshold: int = 70
     traffic_percentage: int = 10
     tools: list = []
 
@@ -78,6 +79,10 @@ def push_agent(payload: PushRequest, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(agent)
 
+    # Always sync monitor_threshold from the spec
+    agent.monitor_threshold = payload.monitor_threshold / 100
+    db.commit()
+
     # Store new version
     existing_count = db.query(Version).filter(Version.agent_id == agent.id).count()
     version = Version(
@@ -98,6 +103,7 @@ def push_agent(payload: PushRequest, db: Session = Depends(get_db)):
         version_id=version.id,
         traffic_percentage=payload.traffic_percentage,
         eval_threshold=payload.eval_threshold / 100,
+        monitor_threshold=payload.monitor_threshold / 100,
         actor=payload.author,
     )
 

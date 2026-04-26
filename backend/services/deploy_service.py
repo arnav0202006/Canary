@@ -18,9 +18,13 @@ def _log(db: Session, agent_id: str, action: str, version_id: str = None, detail
     db.commit()
 
 
-def deploy(db: Session, agent_id: str, version_id: str, traffic_percentage: int, eval_threshold: float, actor: str = "system") -> dict:
+def deploy(db: Session, agent_id: str, version_id: str, traffic_percentage: int, eval_threshold: float, actor: str = "system", monitor_threshold: float = None) -> dict:
     agent = db.query(Agent).filter(Agent.id == agent_id).first()
     version = db.query(Version).filter(Version.id == version_id).first()
+
+    # Fall back to agent's stored monitor_threshold if not provided
+    if monitor_threshold is None:
+        monitor_threshold = getattr(agent, "monitor_threshold", None) or 0.70
 
     if not agent:
         return {"status": "error", "message": f"Agent {agent_id} not found"}
@@ -88,17 +92,29 @@ def deploy(db: Session, agent_id: str, version_id: str, traffic_percentage: int,
     version.status = "production"
     deployment.status = "production"
     deployment.completed_at = datetime.utcnow()
-    agent.last_known_good_id = version_id
-    db.commit()
-    _log(db, agent_id, "promoted_to_production", version_id, {"score": canary_eval["overall_score"]}, actor)
+    agent.current_version_id = version_id
 
+    # Only advance LKG if score meets the stricter monitor_threshold
+    lkg_advanced = canary_eval["overall_score"] >= monitor_threshold
+    if lkg_advanced:
+        agent.last_known_good_id = version_id
+
+    db.commit()
+    _log(db, agent_id, "promoted_to_production", version_id, {
+        "score": canary_eval["overall_score"],
+        "lkg_advanced": lkg_advanced,
+        "monitor_threshold": monitor_threshold,
+    }, actor)
+
+    lkg_note = "LKG advanced." if lkg_advanced else f"LKG NOT advanced (score {canary_eval['overall_score']:.0%} < monitor threshold {monitor_threshold:.0%})."
     return {
         "deployment_id": deployment.id,
         "agent_id": agent_id,
         "version_id": version_id,
         "status": "production",
         "eval_score": canary_eval["overall_score"],
-        "message": f"Version {version.version_number} is live in production. Eval score: {canary_eval['overall_score']:.0%}. LKG advanced.",
+        "lkg_advanced": lkg_advanced,
+        "message": f"Version {version.version_number} is live in production. Eval score: {canary_eval['overall_score']:.0%}. {lkg_note}",
     }
 
 

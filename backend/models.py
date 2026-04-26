@@ -18,6 +18,7 @@ class Agent(Base):
     description = Column(Text, default="")
     current_version_id = Column(String, nullable=True)
     last_known_good_id = Column(String, nullable=True)
+    monitor_threshold = Column(Float, default=0.70)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

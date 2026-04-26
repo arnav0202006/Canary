@@ -83,6 +83,34 @@ def run_eval(version_id: str, prompt: str, threshold: float = 0.90) -> dict:
     }
 
 
+def judge_production_interaction(user_input: str, agent_output: str) -> float:
+    """Score a real production interaction on a 0-1 scale using LLM-as-judge."""
+    judge_prompt = f"""You are evaluating a real customer support interaction. Score the agent's response.
+
+Customer message: {user_input}
+Agent response: {agent_output}
+
+Respond with valid JSON only:
+{{"score": 0 or 1, "reasoning": "one sentence"}}
+
+Score 1 if the response: directly addresses the customer's issue, provides actionable help, is accurate and professional.
+Score 0 if the response: is vague, refuses to help, is off-topic, or gives incorrect information."""
+
+    response = _client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=128,
+        messages=[{"role": "user", "content": judge_prompt}],
+    )
+    raw = response.content[0].text.strip()
+    if raw.startswith("```"):
+        raw = raw.split("```")[1]
+        if raw.startswith("json"):
+            raw = raw[4:]
+        raw = raw.strip()
+    result = json.loads(raw)
+    return float(result["score"])
+
+
 def diff_versions(prompt_a: str, prompt_b: str, version_id_a: str, version_id_b: str) -> str:
     test_suite = load_test_suite()
     comparisons: List[str] = []

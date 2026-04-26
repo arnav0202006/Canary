@@ -219,6 +219,14 @@ class ProductionMonitor:
         # Log the monitoring event
         self._log_monitoring_event(db, validation_result)
 
+        # Store the raw interaction so the background monitor can evaluate real traffic
+        agent = db.query(Agent).filter(Agent.id == agent_id).first()
+        version_id = agent.current_version_id if agent else None
+        _log_audit(db, agent_id, "production_interaction", version_id, {
+            "user_input": user_input,
+            "agent_output": agent_output,
+        })
+
         # Handle critical violations with automatic rollback
         critical_violations = [v for v in validation_result["violations"]
                              if v.get("severity") == "critical"]

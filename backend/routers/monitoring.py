@@ -84,6 +84,26 @@ def get_monitor_metrics(agent_id: str, hours: int = 24, db: Session = Depends(ge
         raise HTTPException(status_code=500, detail=f"Failed to get stats: {str(e)}")
 
 
+@router.get("/{agent_id}/health")
+def get_health_history(agent_id: str, limit: int = 20, db: Session = Depends(get_db)):
+    """Get recent health check results from the background monitor"""
+    from ..models import AuditLog
+    events = db.query(AuditLog).filter(
+        AuditLog.agent_id == agent_id,
+        AuditLog.action.in_(["monitor_check", "monitor_rollback"]),
+    ).order_by(AuditLog.created_at.desc()).limit(limit).all()
+
+    return [
+        {
+            "id": e.id,
+            "action": e.action,
+            "timestamp": e.created_at.isoformat(),
+            "details": json.loads(e.details) if e.details else {},
+        }
+        for e in events
+    ]
+
+
 @router.post("/{agent_id}/validate-output")
 def validate_agent_output(
     agent_id: str,
