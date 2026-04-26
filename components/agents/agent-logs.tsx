@@ -9,6 +9,7 @@ import type { AgentLog } from "@/lib/data/agents"
 
 interface AgentLogsProps {
   logs: AgentLog[]
+  isStreaming?: boolean
 }
 
 function formatTimestamp(timestamp: string): string {
@@ -35,7 +36,7 @@ function LogLevelBadge({ level }: { level: AgentLog["level"] }) {
   )
 }
 
-export function AgentLogs({ logs }: AgentLogsProps) {
+export function AgentLogs({ logs, isStreaming = false }: AgentLogsProps) {
   return (
     <Card className="bg-card/50 border-border/50">
       <CardHeader>
@@ -86,8 +87,16 @@ export function AgentLogs({ logs }: AgentLogsProps) {
               </div>
             ))}
             <div className="flex items-center gap-2 text-muted-foreground pt-2">
-              <span className="animate-pulse w-2 h-2 rounded-full bg-success" />
-              <span className="text-xs">Streaming...</span>
+              <span
+                className={
+                  isStreaming
+                    ? 'animate-pulse w-2 h-2 rounded-full bg-success'
+                    : 'w-2 h-2 rounded-full bg-muted-foreground/50'
+                }
+              />
+              <span className="text-xs">
+                {isStreaming ? 'Streaming...' : 'Stream paused'}
+              </span>
             </div>
           </div>
         </div>

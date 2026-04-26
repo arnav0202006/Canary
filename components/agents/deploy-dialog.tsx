@@ -37,6 +37,10 @@ export function DeployDialog() {
 
   const [prompt, setPrompt] = useState("")
   const [author, setAuthor] = useState("")
+  const [toolsConfig, setToolsConfig] = useState("")
+  const [metadata, setMetadata] = useState("")
+  const [initialState, setInitialState] = useState("")
+  const [initialContext, setInitialContext] = useState("")
   const [versionId, setVersionId] = useState("")
 
   const [threshold, setThreshold] = useState("90")
@@ -47,7 +51,7 @@ export function DeployDialog() {
   function reset() {
     setStep("agent")
     setAgentName(""); setAgentDesc(""); setAgentId("")
-    setPrompt(""); setAuthor(""); setVersionId("")
+    setPrompt(""); setAuthor(""); setToolsConfig(""); setMetadata(""); setInitialState(""); setInitialContext(""); setVersionId("")
     setThreshold("90"); setTraffic("10")
     setResult(null); setError("")
   }
@@ -76,10 +80,56 @@ export function DeployDialog() {
     if (!prompt.trim()) { setError("System prompt is required."); return }
     setError(""); setLoading(true)
     try {
+      const payload: any = {
+        prompt: prompt.trim(),
+        created_by: author.trim() || "user"
+      }
+      
+      // Add optional fields if provided
+      if (toolsConfig.trim()) {
+        try {
+          payload.tools_config = JSON.parse(toolsConfig.trim())
+        } catch {
+          setError("Tools config must be valid JSON.")
+          setLoading(false)
+          return
+        }
+      }
+      
+      if (metadata.trim()) {
+        try {
+          payload.metadata = JSON.parse(metadata.trim())
+        } catch {
+          setError("Metadata must be valid JSON.")
+          setLoading(false)
+          return
+        }
+      }
+      
+      if (initialState.trim()) {
+        try {
+          payload.state = JSON.parse(initialState.trim())
+        } catch {
+          setError("Initial state must be valid JSON.")
+          setLoading(false)
+          return
+        }
+      }
+      
+      if (initialContext.trim()) {
+        try {
+          payload.context = JSON.parse(initialContext.trim())
+        } catch {
+          setError("Initial context must be valid JSON.")
+          setLoading(false)
+          return
+        }
+      }
+
       const res = await fetch(`${BACKEND_URL}/agents/${agentId}/versions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: prompt.trim(), created_by: author.trim() || "user" }),
+        body: JSON.stringify(payload),
       })
       if (!res.ok) throw new Error(await res.text())
       const data = await res.json()
@@ -190,6 +240,42 @@ export function DeployDialog() {
                   placeholder="your-name"
                   value={author}
                   onChange={e => setAuthor(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>Tools Config <span className="text-muted-foreground text-xs">(optional, JSON)</span></Label>
+                <textarea
+                  className="w-full min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-ring font-mono text-xs"
+                  placeholder='{"email_tool": {"api_key": "sk-...", "endpoint": "/send"}, "search_tool": {"enabled": true}}'
+                  value={toolsConfig}
+                  onChange={e => setToolsConfig(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>Metadata <span className="text-muted-foreground text-xs">(optional, JSON)</span></Label>
+                <textarea
+                  className="w-full min-h-[60px] rounded-md border border-input bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-ring font-mono text-xs"
+                  placeholder='{"model": "claude-3", "temperature": 0.7, "max_tokens": 1000}'
+                  value={metadata}
+                  onChange={e => setMetadata(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>Initial State <span className="text-muted-foreground text-xs">(optional, JSON)</span></Label>
+                <textarea
+                  className="w-full min-h-[60px] rounded-md border border-input bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-ring font-mono text-xs"
+                  placeholder='{"current_mode": "active", "last_action": "initialized"}'
+                  value={initialState}
+                  onChange={e => setInitialState(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>Initial Context <span className="text-muted-foreground text-xs">(optional, JSON)</span></Label>
+                <textarea
+                  className="w-full min-h-[60px] rounded-md border border-input bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-ring font-mono text-xs"
+                  placeholder='{"conversation_history": [], "user_preferences": {}}'
+                  value={initialContext}
+                  onChange={e => setInitialContext(e.target.value)}
                 />
               </div>
               {error && <p className="text-sm text-destructive">{error}</p>}

@@ -109,7 +109,7 @@ export default function LoginPage() {
               <p className="text-sm text-destructive font-medium">{error}</p>
             )}
           </CardContent>
-          <CardFooter className="flex flex-col gap-4">
+          <CardFooter className="flex flex-col gap-4 mt-4">
             <Button className="w-full" type="submit" disabled={isLoading}>
               {isLoading ? 'Loading...' : 'Sign In'}
             </Button>
