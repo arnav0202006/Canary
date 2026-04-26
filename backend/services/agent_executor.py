@@ -14,24 +14,35 @@ class AgentExecutor:
         self.monitor = production_monitor
 
     def execute_with_monitoring(self, db: Session, agent_id: str, user_input: str,
+                               version_id: Optional[str] = None,
                                context: Dict[str, Any] = None) -> Dict[str, Any]:
         """
-        Executes an agent request with full monitoring and guardrail enforcement
+        Executes an agent request with full monitoring and guardrail enforcement.
+        If version_id is provided, that specific version is used instead of the
+        agent's current active version.
         """
-        # Get current agent and version
+        # Get current agent
         agent = db.query(Agent).filter(Agent.id == agent_id).first()
-        if not agent or not agent.current_version_id:
+        if not agent:
+            return {
+                "error": "Agent not found",
+                "agent_id": agent_id
+            }
+
+        # Resolve which version to run
+        resolved_version_id = version_id or agent.current_version_id
+        if not resolved_version_id:
             return {
                 "error": "Agent not found or no active version",
                 "agent_id": agent_id
             }
 
-        version = db.query(Version).filter(Version.id == agent.current_version_id).first()
+        version = db.query(Version).filter(Version.id == resolved_version_id).first()
         if not version:
             return {
-                "error": "Active version not found",
+                "error": "Version not found",
                 "agent_id": agent_id,
-                "version_id": agent.current_version_id
+                "version_id": resolved_version_id
             }
 
         # Prepare the system prompt with context

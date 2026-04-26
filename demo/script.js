@@ -1,16 +1,21 @@
 // ─── Config ──────────────────────────────────────────────────────────────────
 const API = '/api';
 
-const GOOD_PROMPT =
+// Fallback prompts used only when no versions exist yet (first-ever provisioning)
+const GOOD_PROMPT_FALLBACK =
   'You are a friendly, empathetic customer support agent. ' +
   'Our refund policy covers all purchases made within 30 days. ' +
   'For damaged or undelivered items, offer a replacement or full refund regardless of purchase date. ' +
   'Be clear, helpful, and reassuring.';
 
-const BAD_PROMPT =
+const BAD_PROMPT_FALLBACK =
   'You are a customer support agent. ' +
-  'Our refund policy covers purchases made within 25 days. ' +
+  'Our refund policy covers purchases made within 20 days. ' +
   'Be concise.';
+
+// Populated from API at runtime; fall back to constants only when no versions exist
+let goodPrompt = GOOD_PROMPT_FALLBACK;
+let badPrompt  = BAD_PROMPT_FALLBACK;
 
 const DEMO_USER_MSG = "Hi, I purchased an item 25 days ago and I'd like to request a refund.";
 
@@ -172,7 +177,7 @@ async function initDemo() {
         body: JSON.stringify({
           name: 'customer-support-bot',
           description: 'Handles customer refund and support requests.',
-          prompt: GOOD_PROMPT,
+          prompt: goodPrompt,
           author: 'jchen',
           eval_threshold: 1,
           traffic_percentage: 100,
@@ -193,6 +198,16 @@ async function initDemo() {
     const goodVer = versions.find(v => v.id === goodVersionId);
     goodVersionNum = goodVer ? goodVer.version_number : (versions.length > 0 ? versions[versions.length - 1].version_number : 1);
     badVersionNum  = goodVersionNum + 1;
+
+    // Populate prompts from the versions API so they are not hardcoded
+    if (goodVer?.prompt) goodPrompt = goodVer.prompt, console.log("KLSDJFKL");
+
+    // For the bad prompt: use the most recent non-production version (rolled back /
+    // rejected from a prior demo run), falling back to the constant if none exists.
+    const prevBadVer = [...versions]
+      .sort((a, b) => b.version_number - a.version_number)
+      .find(v => v.id !== goodVersionId);
+    if (prevBadVer?.prompt) badPrompt = prevBadVer.prompt, console.log("KLSDJFKL2");
 
     // 3. Load audit log
     await reloadAuditLog();
@@ -345,17 +360,27 @@ async function runBadConversation() {
 
   await delay(400);
   showTyping();
-  await delay(1800);
 
-  // Scripted "bad" response — illustrates what the wrong prompt produces.
-  // The eval system caught this before any user saw it in production.
+  let badReply;
+  try {
+    const response = await apiFetch(
+      `/agents/${agentId}/execute?user_input=${encodeURIComponent(DEMO_USER_MSG)}&version_id=${badVersionId}`,
+      { method: 'POST' }
+    );
+    badReply = response.agent_output || response.response || response.output || JSON.stringify(response);
+  } catch (err) {
+    hideTyping();
+    addLog(`Bad-version test request failed: ${err.message}`, 'error');
+    return;
+  }
+
   const evalPct = lastDeployResult
     ? `${(lastDeployResult.eval_score * 100).toFixed(0)}%`
     : '~65%';
   const threshold = '85%';
 
   addAgentBubble(
-    "I'm sorry, but our refund policy only covers purchases made within <strong>25 days</strong>. Unfortunately, since your purchase was 25 days ago, you are no longer eligible for a refund. Is there anything else I can help you with?",
+    badReply,
     'bad',
     {
       cls: 'violation-tag',
@@ -434,7 +459,7 @@ async function startDeploy() {
     newVersion = await apiFetch(`/agents/${agentId}/versions`, {
       method: 'POST',
       body: JSON.stringify({
-        prompt: BAD_PROMPT,
+        prompt: badPrompt,
         created_by: 'jchen',
       }),
     });

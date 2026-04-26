@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from ..database import get_db
 from ..services.agent_executor import agent_executor
@@ -12,18 +12,21 @@ router = APIRouter(prefix="/agents", tags=["execution"])
 def execute_agent(
     agent_id: str,
     user_input: str,
+    version_id: Optional[str] = None,
     context: Dict[str, Any] = None,
     db: Session = Depends(get_db)
 ):
     """
     Executes an agent with full monitoring and guardrail enforcement.
     Automatically handles violations and ensures safe responses.
+    Pass version_id to execute a specific version instead of the current active one.
     """
     try:
         result = agent_executor.execute_with_monitoring(
             db=db,
             agent_id=agent_id,
             user_input=user_input,
+            version_id=version_id,
             context=context
         )
 
