@@ -59,6 +59,7 @@ class DeployRequest(BaseModel):
     version_id: str
     traffic_percentage: int = 10
     eval_threshold: float = 0.90
+    monitor_threshold: float = 0.70
 
 
 class DeployResponse(BaseModel):

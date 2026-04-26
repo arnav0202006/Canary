@@ -25,14 +25,25 @@ interface BackendVersion {
   created_by: string
 }
 
+interface BackendDeploymentStep {
+  id: string
+  name: string
+  status: "success" | "failed" | "in-progress" | "pending" | "skipped"
+  score?: number
+}
+
 interface BackendDeployment {
   id: string
+  agent_id: string
   version_id: string
+  version_number: number | null
+  eval_score: number | null
   status: string
   traffic_percentage: number
   eval_threshold: number
   started_at: string
   completed_at: string | null
+  steps: BackendDeploymentStep[]
 }
 
 interface BackendAuditLog {
@@ -88,6 +99,8 @@ function mapAgent(a: BackendAgent, versions: BackendVersion[]): Agent {
     updatedAt: a.created_at,
     tags: [],
     owner: latest?.created_by || "system",
+    lastKnownGoodId: a.last_known_good_id,
+    currentVersionId: a.current_version_id,
   }
 }
 
@@ -98,6 +111,8 @@ function mapVersion(v: BackendVersion): AgentVersion {
     version: `v${v.version_number}`,
     hash: v.id.slice(0, 7),
     message: `Prompt v${v.version_number} — status: ${v.status}${v.eval_score != null ? `, eval: ${Math.round(v.eval_score * 100)}%` : ""}`,
+    status: v.status,
+    evalScore: v.eval_score,
     author: v.created_by,
     authorAvatar: v.created_by.slice(0, 2).toUpperCase(),
     createdAt: v.created_at,
@@ -105,16 +120,17 @@ function mapVersion(v: BackendVersion): AgentVersion {
   }
 }
 
-function mapDeployment(d: BackendDeployment, agentId: string, agentName: string, versions: BackendVersion[]): Deployment {
-  const version = versions.find(v => v.id === d.version_id)
+function mapDeployment(d: BackendDeployment, agentName: string): Deployment {
+  const versionLabel = d.version_number != null ? `v${d.version_number}` : "unknown"
+  const scoreNote = d.eval_score != null ? ` — eval: ${Math.round(d.eval_score * 100)}%` : ""
   return {
     id: d.id,
-    agentId,
+    agentId: d.agent_id,
     agentName,
-    version: version ? `v${version.version_number}` : "unknown",
+    version: versionLabel,
     status: toDeploymentStatus(d.status),
     trigger: "manual",
-    triggeredBy: version?.created_by || "system",
+    triggeredBy: "cli",
     startTime: d.started_at,
     endTime: d.completed_at || undefined,
     duration: d.completed_at
@@ -122,14 +138,10 @@ function mapDeployment(d: BackendDeployment, agentId: string, agentName: string,
       : undefined,
     commit: {
       hash: d.version_id.slice(0, 7),
-      message: `Deploy ${version ? `v${version.version_number}` : d.version_id} — threshold: ${Math.round(d.eval_threshold * 100)}%`,
-      author: version?.created_by || "system",
+      message: `${versionLabel} — threshold: ${Math.round(d.eval_threshold * 100)}%${scoreNote}`,
+      author: "cli",
     },
-    steps: [
-      { id: "gate1", name: "Behavioral Eval (Gate 1)", status: d.status === "queued" ? "pending" : "success" },
-      { id: "canary", name: "Canary Deploy", status: d.status === "canary" ? "in-progress" : d.status === "production" ? "success" : d.status === "failed" || d.status === "rolled_back" ? "failed" : "pending" },
-      { id: "promote", name: "Promote to Production", status: d.status === "production" ? "success" : d.status === "rolled_back" ? "failed" : "pending" },
-    ],
+    steps: d.steps,
   }
 }
 
@@ -179,10 +191,9 @@ export async function fetchDeployments(): Promise<Deployment[] | null> {
 
   const all: Deployment[] = []
   for (const agent of agents) {
-    const versions = await get<BackendVersion[]>(`/agents/${agent.id}/versions`) ?? []
     const deps = await get<BackendDeployment[]>(`/agents/${agent.id}/deployments`) ?? []
     for (const d of deps) {
-      all.push(mapDeployment(d, agent.id, agent.name, versions))
+      all.push(mapDeployment(d, agent.name))
     }
   }
   return all.sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime())

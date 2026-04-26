@@ -158,7 +158,11 @@ export default async function AgentDetailPage({
         </TabsList>
 
         <TabsContent value="versions" className="space-y-4">
-          <AgentVersions versions={versions} />
+          <AgentVersions
+            versions={versions}
+            lastKnownGoodId={liveAgent?.lastKnownGoodId ?? null}
+            currentVersionId={liveAgent?.currentVersionId ?? null}
+          />
         </TabsContent>
 
         <TabsContent value="logs" className="space-y-4">

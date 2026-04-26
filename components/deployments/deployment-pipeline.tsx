@@ -34,13 +34,22 @@ export function DeploymentPipeline({ steps }: DeploymentPipelineProps) {
             "bg-muted/30"
           }`}>
             <StepIcon status={step.status} />
-            <span className={`text-sm font-medium ${
-              step.status === "pending" || step.status === "skipped" 
-                ? "text-muted-foreground" 
-                : "text-foreground"
-            }`}>
-              {step.name}
-            </span>
+            <div className="flex flex-col min-w-0">
+              <span className={`text-sm font-medium ${
+                step.status === "pending" || step.status === "skipped"
+                  ? "text-muted-foreground"
+                  : "text-foreground"
+              }`}>
+                {step.name}
+              </span>
+              {step.score != null && (
+                <span className={`text-xs font-mono ${
+                  step.status === "success" ? "text-success" : "text-destructive"
+                }`}>
+                  {Math.round(step.score * 100)}%
+                </span>
+              )}
+            </div>
           </div>
           {index < steps.length - 1 && (
             <div className={`w-4 h-px ${

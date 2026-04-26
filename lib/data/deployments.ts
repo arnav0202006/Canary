@@ -24,6 +24,7 @@ export interface DeploymentStep {
   id: string
   name: string
   status: "success" | "failed" | "in-progress" | "pending" | "skipped"
+  score?: number
   startTime?: string
   endTime?: string
   duration?: number

@@ -43,7 +43,8 @@ export function DeployDialog() {
   const [initialContext, setInitialContext] = useState("")
   const [versionId, setVersionId] = useState("")
 
-  const [threshold, setThreshold] = useState("90")
+  const [threshold, setThreshold] = useState("60")
+  const [monitorThreshold, setMonitorThreshold] = useState("70")
   const [traffic, setTraffic] = useState("10")
 
   const [result, setResult] = useState<DeployResult | null>(null)
@@ -52,7 +53,7 @@ export function DeployDialog() {
     setStep("agent")
     setAgentName(""); setAgentDesc(""); setAgentId("")
     setPrompt(""); setAuthor(""); setToolsConfig(""); setMetadata(""); setInitialState(""); setInitialContext(""); setVersionId("")
-    setThreshold("90"); setTraffic("10")
+    setThreshold("60"); setMonitorThreshold("70"); setTraffic("10")
     setResult(null); setError("")
   }
 
@@ -60,6 +61,19 @@ export function DeployDialog() {
     if (!agentName.trim()) { setError("Agent name is required."); return }
     setError(""); setLoading(true)
     try {
+      // Check if agent with this name already exists
+      const listRes = await fetch(`${BACKEND_URL}/agents`)
+      if (listRes.ok) {
+        const agents = await listRes.json()
+        const existing = agents.find((a: any) => a.name === agentName.trim())
+        if (existing) {
+          setAgentId(existing.id)
+          setStep("version")
+          setLoading(false)
+          return
+        }
+      }
+      // Create new agent
       const res = await fetch(`${BACKEND_URL}/agents`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -151,7 +165,8 @@ export function DeployDialog() {
         body: JSON.stringify({
           version_id: versionId,
           traffic_percentage: parseInt(traffic) || 10,
-          eval_threshold: (parseInt(threshold) || 90) / 100,
+          eval_threshold: (parseInt(threshold) || 60) / 100,
+          monitor_threshold: (parseInt(monitorThreshold) || 70) / 100,
         }),
       })
       if (!res.ok) throw new Error(await res.text())
@@ -309,7 +324,7 @@ export function DeployDialog() {
                 />
               </div>
               <div className="space-y-1">
-                <Label>Auto-rollback Threshold %</Label>
+                <Label>Deploy Threshold %</Label>
                 <Input
                   type="number"
                   min={1}
@@ -318,7 +333,20 @@ export function DeployDialog() {
                   onChange={e => setThreshold(e.target.value)}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Auto-rollback if eval score drops below this value.
+                  Version is rejected at deploy time if eval score is below this.
+                </p>
+              </div>
+              <div className="space-y-1">
+                <Label>Monitor Threshold %</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={100}
+                  value={monitorThreshold}
+                  onChange={e => setMonitorThreshold(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Background monitor auto-rolls back if live score drops below this.
                 </p>
               </div>
               {error && <p className="text-sm text-destructive">{error}</p>}

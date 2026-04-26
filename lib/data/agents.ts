@@ -16,6 +16,8 @@ export interface Agent {
   tags: string[]
   owner: string
   repository?: string
+  lastKnownGoodId?: string | null
+  currentVersionId?: string | null
 }
 
 export interface AgentVersion {
@@ -25,6 +27,8 @@ export interface AgentVersion {
   version: string
   hash: string
   message: string
+  status: string
+  evalScore: number | null
   author: string
   authorAvatar: string
   createdAt: string
