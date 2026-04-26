@@ -62,9 +62,8 @@ const secondaryNavItems = [
   },
   {
     title: "Documentation",
-    url: "https://docs.canary.run",
+    url: "/dashboard/documentation",
     icon: HelpCircle,
-    external: true,
   },
 ]
 
@@ -128,11 +127,7 @@ export function AppSidebar() {
                     isActive={pathname === item.url}
                     tooltip={item.title}
                   >
-                    <Link 
-                      href={item.url}
-                      target={item.external ? "_blank" : undefined}
-                      rel={item.external ? "noopener noreferrer" : undefined}
-                    >
+                    <Link href={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
                     </Link>
