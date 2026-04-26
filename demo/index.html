@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Canary — Agent Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+
+    <!-- Top nav -->
+    <nav class="navbar">
+      <div class="navbar-brand">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+        </svg>
+        <span>Canary</span>
+      </div>
+      <div class="navbar-links">
+        <a href="#" class="active">Agents</a>
+        <a href="#">Deployments</a>
+        <a href="#">Analytics</a>
+        <a href="#">Settings</a>
+      </div>
+      <div class="navbar-user">
+        <div class="avatar">JC</div>
+      </div>
+    </nav>
+
+    <div class="layout">
+
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-section-label">Agents</div>
+        <ul class="sidebar-list">
+          <li class="sidebar-item active">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+            customer-support-bot
+          </li>
+          <li class="sidebar-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+            summarization-agent
+          </li>
+          <li class="sidebar-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+            triage-classifier
+          </li>
+        </ul>
+      </aside>
+
+      <!-- Main content -->
+      <main class="main">
+
+        <!-- Page header -->
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">customer-support-bot</h1>
+            <p class="page-subtitle">Production · Anthropic claude-3-5-sonnet</p>
+          </div>
+          <div class="action-bar">
+            <button id="btn-deploy" class="btn btn-primary" onclick="startDeploy()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              Deploy v1.3
+            </button>
+            <button id="btn-rollback" class="btn btn-danger hidden" onclick="startRollback()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+              Rollback to v1.2
+            </button>
+          </div>
+        </div>
+
+        <!-- Error panel (hidden initially) -->
+        <div id="error-panel" class="error-panel hidden">
+          <div class="error-panel-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+          <div class="error-panel-body">
+            <div class="error-panel-title">Deployment Failed — Health Check Error</div>
+            <div class="error-panel-desc">Error rate spiked to <strong>12.4%</strong> (threshold: 5%). Canary evaluation detected critical violations. Automatic rollback is available.</div>
+            <div class="error-metrics">
+              <div class="metric-chip metric-bad">
+                <span class="metric-label">Error Rate</span>
+                <span class="metric-value">12.4%</span>
+              </div>
+              <div class="metric-chip metric-bad">
+                <span class="metric-label">P99 Latency</span>
+                <span class="metric-value">4,210ms</span>
+              </div>
+              <div class="metric-chip metric-ok">
+                <span class="metric-label">Threshold</span>
+                <span class="metric-value">5%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rollback success panel (hidden initially) -->
+        <div id="success-panel" class="success-panel hidden">
+          <div class="success-panel-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="success-panel-body">
+            <div class="success-panel-title">Rollback Complete — v1.2 Restored</div>
+            <div class="success-panel-desc">Agent is healthy. Error rate back to <strong>0.3%</strong>. Audit event logged.</div>
+          </div>
+        </div>
+
+        <!-- Agent card -->
+        <div class="card agent-card">
+          <div class="card-row">
+            <div class="card-field">
+              <div class="field-label">Status</div>
+              <div id="status-pill" class="pill pill-healthy">Healthy</div>
+            </div>
+            <div class="card-field">
+              <div class="field-label">Active Version</div>
+              <div id="active-version" class="version-badge">v1.2</div>
+            </div>
+            <div class="card-field">
+              <div class="field-label">Uptime</div>
+              <div class="field-value">99.97%</div>
+            </div>
+            <div class="card-field">
+              <div class="field-label">Requests / min</div>
+              <div class="field-value" id="rpm-value">1,243</div>
+            </div>
+            <div class="card-field">
+              <div class="field-label">Error Rate</div>
+              <div class="field-value" id="error-rate-value">0.3%</div>
+            </div>
+          </div>
+
+          <!-- Deploy progress bar (hidden initially) -->
+          <div id="progress-wrap" class="progress-wrap hidden">
+            <div class="progress-label" id="progress-label">Deploying v1.3…</div>
+            <div class="progress-track">
+              <div class="progress-bar" id="progress-bar"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="two-col">
+
+          <!-- Version history -->
+          <div class="card">
+            <div class="card-header">Version History</div>
+            <table class="version-table">
+              <thead>
+                <tr>
+                  <th>Version</th>
+                  <th>Deployed</th>
+                  <th>By</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="version-tbody">
+                <tr id="row-v13" class="hidden">
+                  <td class="version-cell">v1.3</td>
+                  <td>just now</td>
+                  <td>jchen</td>
+                  <td><span id="v13-chip" class="chip chip-deploying">Deploying</span></td>
+                </tr>
+                <tr id="row-v12" class="row-active">
+                  <td class="version-cell">v1.2</td>
+                  <td>3 days ago</td>
+                  <td>jchen</td>
+                  <td><span class="chip chip-active">Active</span></td>
+                </tr>
+                <tr>
+                  <td class="version-cell">v1.1</td>
+                  <td>10 days ago</td>
+                  <td>jchen</td>
+                  <td><span class="chip chip-inactive">Superseded</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Activity log -->
+          <div class="card">
+            <div class="card-header">Activity Log</div>
+            <ul class="activity-log" id="activity-log">
+              <li class="log-entry">
+                <span class="log-time">3d ago</span>
+                <span class="log-text">v1.2 deployed successfully by jchen</span>
+              </li>
+              <li class="log-entry">
+                <span class="log-time">3d ago</span>
+                <span class="log-text">v1.2 health check passed — error rate 0.3%</span>
+              </li>
+              <li class="log-entry">
+                <span class="log-time">10d ago</span>
+                <span class="log-text">v1.1 superseded by v1.2</span>
+              </li>
+            </ul>
+          </div>
+
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
