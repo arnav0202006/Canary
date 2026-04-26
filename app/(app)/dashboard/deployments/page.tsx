@@ -1,11 +1,10 @@
 import Link from "next/link"
-import { 
-  Rocket, 
-  GitBranch, 
-  User, 
-  Clock, 
-  CheckCircle2, 
-  XCircle, 
+import {
+  GitBranch,
+  User,
+  Clock,
+  CheckCircle2,
+  XCircle,
   Loader2,
   Ban,
   RotateCcw,
@@ -14,7 +13,6 @@ import {
 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   deployments as mockDeployments,
   type DeploymentStatus,
@@ -81,15 +79,9 @@ export default async function DeploymentsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Pipelines</h1>
-          <p className="text-muted-foreground">Push code. Ship agents. Repeat.</p>
-        </div>
-        <Button className="gap-2">
-          <Rocket className="h-4 w-4" />
-          Trigger Deploy
-        </Button>
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Pipelines</h1>
+        <p className="text-muted-foreground">Push code. Ship agents. Repeat.</p>
       </div>
 
       {/* Active Deployments */}
@@ -134,9 +126,6 @@ export default async function DeploymentsPage() {
                       </span>
                     </div>
                   </div>
-                  <Button variant="destructive" size="sm">
-                    Cancel
-                  </Button>
                 </div>
                 
                 <DeploymentPipeline steps={deployment.steps} />
@@ -159,52 +148,46 @@ export default async function DeploymentsPage() {
         <CardContent>
           <div className="space-y-3">
             {recentDeployments.map((deployment) => (
-              <div 
-                key={deployment.id} 
-                className="flex items-center gap-4 rounded-lg border border-white/10 p-4 bg-slate-900/50 hover:bg-slate-800/80 transition-colors"
+              <div
+                key={deployment.id}
+                className="rounded-lg border border-white/10 p-4 bg-slate-900/50"
               >
-                <div className={`w-1 h-12 rounded-full ${
-                  deployment.status === "success" ? "bg-success" :
-                  deployment.status === "failed" ? "bg-destructive" :
-                  deployment.status === "in-progress" ? "bg-info" :
-                  "bg-muted"
-                }`} />
-                
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Link 
-                      href={`/dashboard/agents/${deployment.agentId}`}
-                      className="font-medium hover:underline truncate"
-                    >
-                      {deployment.agentName}
-                    </Link>
-                    <Badge variant="outline" className="font-mono text-xs shrink-0">
-                      {deployment.version}
-                    </Badge>
+                <div className="flex items-center gap-4 mb-3">
+                  <div className={`w-1 h-10 rounded-full shrink-0 ${
+                    deployment.status === "success" ? "bg-success" :
+                    deployment.status === "failed" ? "bg-destructive" :
+                    deployment.status === "in-progress" ? "bg-info" :
+                    "bg-muted"
+                  }`} />
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <Link
+                        href={`/dashboard/agents/${deployment.agentId}`}
+                        className="font-medium hover:underline truncate"
+                      >
+                        {deployment.agentName}
+                      </Link>
+                      <Badge variant="outline" className="font-mono text-xs shrink-0">
+                        {deployment.version}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground truncate">
+                      {deployment.commit.message}
+                    </p>
                   </div>
-                  <p className="text-sm text-muted-foreground truncate">
-                    {deployment.commit.message}
-                  </p>
+
+                  <div className="flex items-center gap-6 shrink-0">
+                    <div className="text-xs text-muted-foreground w-28 text-right">
+                      {formatDate(deployment.startTime)}
+                    </div>
+                    <div className="w-24">
+                      <StatusBadge status={deployment.status} />
+                    </div>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-6 shrink-0">
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <TriggerIcon trigger={deployment.trigger} />
-                    <span className="capitalize">{deployment.trigger}</span>
-                  </div>
-                  
-                  <div className="text-xs text-muted-foreground w-20 text-right">
-                    {deployment.duration ? formatDuration(deployment.duration) : "-"}
-                  </div>
-                  
-                  <div className="text-xs text-muted-foreground w-28 text-right">
-                    {formatDate(deployment.startTime)}
-                  </div>
-                  
-                  <div className="w-24">
-                    <StatusBadge status={deployment.status} />
-                  </div>
-                </div>
+                <DeploymentPipeline steps={deployment.steps} />
               </div>
             ))}
           </div>
