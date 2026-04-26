@@ -162,7 +162,7 @@ export default async function AgentDetailPage({
         </TabsContent>
 
         <TabsContent value="logs" className="space-y-4">
-          <AgentLogs logs={logs} />
+          <AgentLogs logs={logs} isStreaming={false} />
         </TabsContent>
 
         <TabsContent value="traces" className="space-y-4">
