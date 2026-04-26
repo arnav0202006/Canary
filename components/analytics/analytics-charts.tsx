@@ -28,7 +28,7 @@ interface AnalyticsChartsProps {
 // Transform data for charts
 function transformTimeSeriesData(data: MetricDataPoint[], hours: number = 24) {
   return data.slice(-hours).map((d, i) => ({
-    time: `${i}h`,
+    time: i % 4 === 0 || i === hours - 1 ? `${i}h` : '',
     value: Math.round(d.value)
   }))
 }
@@ -53,7 +53,7 @@ export function AnalyticsCharts({
         <CardContent>
           <div className="h-[250px] bg-muted rounded p-2">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={requests}>
+              <AreaChart data={requests} margin={{ top: 5, right: 25, left: 5, bottom: 5 }}>
                 <defs>
                   <linearGradient id="requestGradientAnalytics" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="hsl(200 100% 70%)" stopOpacity={0.4} />
@@ -65,7 +65,8 @@ export function AnalyticsCharts({
                   tickLine={false}
                   axisLine={false}
                   tick={{ fill: 'hsl(0 0% 70%)', fontSize: 11 }}
-                  interval="preserveStartEnd"
+                  interval={0}
+                  tickFormatter={(value) => value}
                 />
                 <YAxis 
                   tickLine={false}
@@ -76,10 +77,11 @@ export function AnalyticsCharts({
                 />
                 <Tooltip 
                   contentStyle={{
-                    backgroundColor: 'hsl(var(--popover))',
-                    border: '1px solid hsl(var(--border))',
+                    backgroundColor: 'hsl(0 0% 15%)',
+                    border: '1px solid hsl(0 0% 30%)',
                     borderRadius: '6px',
-                    fontSize: '12px'
+                    fontSize: '12px',
+                    color: 'hsl(0 0% 90%)'
                   }}
                   formatter={(value: number) => [value.toLocaleString(), 'Requests']}
                 />
@@ -105,13 +107,14 @@ export function AnalyticsCharts({
         <CardContent>
           <div className="h-[250px] bg-muted rounded p-2">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={errors}>
+              <LineChart data={errors} margin={{ top: 5, right: 25, left: 5, bottom: 5 }}>
                 <XAxis 
                   dataKey="time" 
                   tickLine={false}
                   axisLine={false}
                   tick={{ fill: 'hsl(0 0% 70%)', fontSize: 11 }}
-                  interval="preserveStartEnd"
+                  interval={0}
+                  tickFormatter={(value) => value}
                 />
                 <YAxis 
                   tickLine={false}
@@ -121,11 +124,14 @@ export function AnalyticsCharts({
                 />
                 <Tooltip 
                   contentStyle={{
-                    backgroundColor: 'hsl(var(--popover))',
-                    border: '1px solid hsl(var(--border))',
+                    backgroundColor: 'hsl(0 0% 15%)',
+                    border: '1px solid hsl(0 0% 30%)',
                     borderRadius: '6px',
-                    fontSize: '12px'
+                    fontSize: '12px',
+                    color: 'hsl(0 0% 90%)'
                   }}
+                  labelStyle={{ color: 'hsl(0 0% 90%)' }}
+                  itemStyle={{ color: 'hsl(0 0% 90%)' }}
                   formatter={(value: number) => [value, 'Errors']}
                 />
                 <Line 
@@ -166,11 +172,15 @@ export function AnalyticsCharts({
                 />
                 <Tooltip 
                   contentStyle={{
-                    backgroundColor: 'hsl(var(--popover))',
-                    border: '1px solid hsl(var(--border))',
+                    backgroundColor: 'hsl(0 0% 15%)',
+                    border: '1px solid hsl(0 0% 30%)',
                     borderRadius: '6px',
-                    fontSize: '12px'
+                    fontSize: '12px',
+                    color: 'hsl(0 0% 90%)'
                   }}
+                  labelStyle={{ color: 'hsl(0 0% 90%)' }}
+                  itemStyle={{ color: 'hsl(0 0% 90%)' }}
+                  cursor={{ fill: 'transparent' }}
                 />
                 <Legend 
                   wrapperStyle={{ fontSize: '12px' }}
@@ -178,16 +188,16 @@ export function AnalyticsCharts({
                 />
                 <Bar 
                   dataKey="success" 
-                  fill="hsl(0 0% 75%)" 
-                  stroke="hsl(0 0% 75%)"
+                  fill="hsl(142 76% 36%)"
+                  stroke="hsl(142 76% 36%)"
                   strokeWidth={1}
                   radius={[4, 4, 0, 0]}
                   name="Success"
                 />
                 <Bar 
                   dataKey="failed" 
-                  fill="hsl(0 0% 55%)" 
-                  stroke="hsl(0 0% 55%)"
+                  fill="hsl(0 84% 60%)"
+                  stroke="hsl(0 84% 60%)"
                   strokeWidth={1}
                   radius={[4, 4, 0, 0]}
                   name="Failed"
@@ -226,17 +236,21 @@ export function AnalyticsCharts({
                 />
                 <Tooltip 
                   contentStyle={{
-                    backgroundColor: 'hsl(var(--popover))',
-                    border: '1px solid hsl(var(--border))',
+                    backgroundColor: 'hsl(0 0% 15%)',
+                    border: '1px solid hsl(0 0% 30%)',
                     borderRadius: '6px',
-                    fontSize: '12px'
+                    fontSize: '12px',
+                    color: 'hsl(0 0% 90%)'
                   }}
+                  labelStyle={{ color: 'hsl(0 0% 90%)' }}
+                  itemStyle={{ color: 'hsl(0 0% 90%)' }}
+                  cursor={{ fill: 'transparent' }}
                   formatter={(value: number) => [value.toLocaleString(), 'Requests']}
                 />
                 <Bar 
                   dataKey="count" 
-                  fill="hsl(0 0% 65%)" 
-                  stroke="hsl(0 0% 65%)"
+                  fill="hsl(0 0% 60%)"
+                  stroke="hsl(0 0% 60%)"
                   strokeWidth={1}
                   radius={[0, 4, 4, 0]}
                 />

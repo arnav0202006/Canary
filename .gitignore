@@ -16,10 +16,9 @@ out/
 build/
 dist/
 
-# Environment variables (real secrets only — .env.example is safe to commit)
-.env
-.env.local
-.env.production
+# Environment variables
+.env*
+!.env.example
 
 # Debug logs
 npm-debug.log*

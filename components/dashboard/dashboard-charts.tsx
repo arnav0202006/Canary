@@ -10,7 +10,7 @@ interface DeploymentData {
 
 export function DashboardCharts({ data }: { data: DeploymentData[] }) {
   return (
-    <div className="h-[200px] bg-muted rounded p-2">
+    <div className="h-50 bg-muted rounded p-2">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} barGap={2}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" />
@@ -28,12 +28,15 @@ export function DashboardCharts({ data }: { data: DeploymentData[] }) {
           />
           <Tooltip 
             contentStyle={{
-              backgroundColor: 'hsl(var(--popover))',
-              border: '1px solid hsl(var(--border))',
+              backgroundColor: 'hsl(0 0% 15%)',
+              border: '1px solid hsl(0 0% 30%)',
               borderRadius: '6px',
-              fontSize: '12px'
+              fontSize: '12px',
+              color: 'hsl(0 0% 90%)'
             }}
-            labelStyle={{ color: 'hsl(var(--foreground))' }}
+            labelStyle={{ color: 'hsl(0 0% 90%)' }}
+            itemStyle={{ color: 'hsl(0 0% 90%)' }}
+            cursor={{ fill: 'transparent' }}
           />
           <Legend 
             wrapperStyle={{ fontSize: '12px' }}
@@ -41,16 +44,16 @@ export function DashboardCharts({ data }: { data: DeploymentData[] }) {
           />
           <Bar 
             dataKey="success" 
-            fill="hsl(0 0% 75%)" 
-            stroke="hsl(0 0% 75%)"
+            fill="hsl(142 76% 36%)"
+            stroke="hsl(142 76% 36%)"
             strokeWidth={1}
             radius={[4, 4, 0, 0]}
             name="Successful"
           />
           <Bar 
             dataKey="failed" 
-            fill="hsl(0 0% 55%)" 
-            stroke="hsl(0 0% 55%)"
+            fill="hsl(0 84% 60%)"
+            stroke="hsl(0 84% 60%)"
             strokeWidth={1}
             radius={[4, 4, 0, 0]}
             name="Failed"
