@@ -8,6 +8,7 @@ import {
   LineChart,
   Bar,
   BarChart,
+  Cell,
   XAxis, 
   YAxis, 
   CartesianGrid,
@@ -76,10 +77,11 @@ export function AnalyticsCharts({
                 />
                 <Tooltip 
                   contentStyle={{
-                    backgroundColor: 'hsl(var(--popover))',
-                    border: '1px solid hsl(var(--border))',
+                    backgroundColor: 'hsl(0 0% 15%)',
+                    border: '1px solid hsl(0 0% 30%)',
                     borderRadius: '6px',
-                    fontSize: '12px'
+                    fontSize: '12px',
+                    color: 'hsl(0 0% 90%)'
                   }}
                   formatter={(value: number) => [value.toLocaleString(), 'Requests']}
                 />
@@ -121,11 +123,14 @@ export function AnalyticsCharts({
                 />
                 <Tooltip 
                   contentStyle={{
-                    backgroundColor: 'hsl(var(--popover))',
-                    border: '1px solid hsl(var(--border))',
+                    backgroundColor: 'hsl(0 0% 15%)',
+                    border: '1px solid hsl(0 0% 30%)',
                     borderRadius: '6px',
-                    fontSize: '12px'
+                    fontSize: '12px',
+                    color: 'hsl(0 0% 90%)'
                   }}
+                  labelStyle={{ color: 'hsl(0 0% 90%)' }}
+                  itemStyle={{ color: 'hsl(0 0% 90%)' }}
                   formatter={(value: number) => [value, 'Errors']}
                 />
                 <Line 
@@ -166,11 +171,15 @@ export function AnalyticsCharts({
                 />
                 <Tooltip 
                   contentStyle={{
-                    backgroundColor: 'hsl(var(--popover))',
-                    border: '1px solid hsl(var(--border))',
+                    backgroundColor: 'hsl(0 0% 15%)',
+                    border: '1px solid hsl(0 0% 30%)',
                     borderRadius: '6px',
-                    fontSize: '12px'
+                    fontSize: '12px',
+                    color: 'hsl(0 0% 90%)'
                   }}
+                  labelStyle={{ color: 'hsl(0 0% 90%)' }}
+                  itemStyle={{ color: 'hsl(0 0% 90%)' }}
+                  cursor={{ fill: 'transparent' }}
                 />
                 <Legend 
                   wrapperStyle={{ fontSize: '12px' }}
@@ -178,20 +187,34 @@ export function AnalyticsCharts({
                 />
                 <Bar 
                   dataKey="success" 
-                  fill="hsl(0 0% 75%)" 
-                  stroke="hsl(0 0% 75%)"
+                  stroke="hsl(0 0% 70%)"
                   strokeWidth={1}
                   radius={[4, 4, 0, 0]}
                   name="Success"
-                />
+                >
+                  {deploymentsData.map((entry, index) => (
+                    <Cell
+                      key={`success-${index}`}
+                      fill="hsl(0 0% 70%)"
+                      stroke="hsl(0 0% 70%)"
+                    />
+                  ))}
+                </Bar>
                 <Bar 
                   dataKey="failed" 
-                  fill="hsl(0 0% 55%)" 
-                  stroke="hsl(0 0% 55%)"
+                  stroke="hsl(0 0% 50%)"
                   strokeWidth={1}
                   radius={[4, 4, 0, 0]}
                   name="Failed"
-                />
+                >
+                  {deploymentsData.map((entry, index) => (
+                    <Cell
+                      key={`failed-${index}`}
+                      fill="hsl(0 0% 50%)"
+                      stroke="hsl(0 0% 50%)"
+                    />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -226,20 +249,31 @@ export function AnalyticsCharts({
                 />
                 <Tooltip 
                   contentStyle={{
-                    backgroundColor: 'hsl(var(--popover))',
-                    border: '1px solid hsl(var(--border))',
+                    backgroundColor: 'hsl(0 0% 15%)',
+                    border: '1px solid hsl(0 0% 30%)',
                     borderRadius: '6px',
-                    fontSize: '12px'
+                    fontSize: '12px',
+                    color: 'hsl(0 0% 90%)'
                   }}
+                  labelStyle={{ color: 'hsl(0 0% 90%)' }}
+                  itemStyle={{ color: 'hsl(0 0% 90%)' }}
+                  cursor={{ fill: 'transparent' }}
                   formatter={(value: number) => [value.toLocaleString(), 'Requests']}
                 />
                 <Bar 
                   dataKey="count" 
-                  fill="hsl(0 0% 65%)" 
-                  stroke="hsl(0 0% 65%)"
+                  stroke="hsl(0 0% 60%)"
                   strokeWidth={1}
                   radius={[0, 4, 4, 0]}
-                />
+                >
+                  {latencyData.map((entry, index) => (
+                    <Cell
+                      key={`latency-${index}`}
+                      fill="hsl(0 0% 60%)"
+                      stroke="hsl(0 0% 60%)"
+                    />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
